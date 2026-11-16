@@ -145,7 +145,7 @@ func TestPages_rendersPortugueseCopy(t *testing.T) {
 	// the pt set it would fall back to the English boot catalog and the
 	// Portuguese copy would never be exercised.
 	ptViews := setupTestViewsFor(t, "pt")
-	h := NewDiaryHandler(ptViews, env.store, testSite(), catalog, cais.Config{})
+	h := NewDiaryHandler(ptViews, env.store, testSite(), catalog, cais.Config{}, nil)
 
 	req := signedIn(t, env, http.MethodGet, "/diario")
 	rr := httptest.NewRecorder()
@@ -192,7 +192,7 @@ func newPageHandlers(t *testing.T, env testEnv, locale string) pageHandlers {
 	cfg := cais.Config{}
 	return pageHandlers{
 		auth:     NewAuthHandler(views, env.store, testSite(), env.store.Sessions(), cfg, catalog),
-		diary:    NewDiaryHandler(views, env.store, testSite(), catalog, cfg),
+		diary:    NewDiaryHandler(views, env.store, testSite(), catalog, cfg, nil),
 		foods:    NewFoodsHandler(views, env.store, testSite(), catalog, cfg),
 		progress: NewProgressHandler(views, env.store, testSite(), catalog, cfg),
 		goals:    NewGoalsHandler(views, env.store, testSite(), catalog, cfg),

@@ -14,23 +14,26 @@ import (
 
 	"github.com/puppe1990/vitalis/internal/models"
 	"github.com/puppe1990/vitalis/internal/nutrition"
+	"github.com/puppe1990/vitalis/internal/photos"
 	"github.com/puppe1990/vitalis/internal/store"
 )
 
 // Handler is the /api/v1 mux. It is mounted under the app's CSRF-exempt prefix
 // and authenticates every request with a bearer token.
 type Handler struct {
-	store store.Store
-	mux   *http.ServeMux
+	store  store.Store
+	photos *photos.Library
+	mux    *http.ServeMux
 }
 
 // Prefix is where the app mounts this handler. The prefix lives here rather
 // than at the call site so the routes and their tests cannot drift apart.
 const Prefix = "/api/v1"
 
-// NewHandler wires the routes under Prefix.
-func NewHandler(s store.Store) http.Handler {
-	h := &Handler{store: s, mux: http.NewServeMux()}
+// NewHandler wires the routes under Prefix. lib may be nil when B2 is unset;
+// photo routes then answer 503 so an MCP client can tell storage is off.
+func NewHandler(s store.Store, lib *photos.Library) http.Handler {
+	h := &Handler{store: s, photos: lib, mux: http.NewServeMux()}
 
 	h.mux.HandleFunc("GET /api/v1/diary", h.auth(h.diary))
 	h.mux.HandleFunc("GET /api/v1/foods", h.auth(h.searchFoods))
@@ -45,6 +48,9 @@ func NewHandler(s store.Store) http.Handler {
 	h.mux.HandleFunc("GET /api/v1/progress", h.auth(h.progress))
 	h.mux.HandleFunc("GET /api/v1/weight", h.auth(h.listWeight))
 	h.mux.HandleFunc("POST /api/v1/weight", h.auth(h.saveWeight))
+	h.mux.HandleFunc("POST /api/v1/photos", h.auth(h.uploadPhoto))
+	h.mux.HandleFunc("GET /api/v1/photos/{id}", h.auth(h.getPhoto))
+	h.mux.HandleFunc("DELETE /api/v1/photos/{id}", h.auth(h.deletePhoto))
 
 	return h.mux
 }

@@ -195,6 +195,35 @@ export function createTools(client) {
     }),
 
     tool({
+      name: "log_photo",
+      description:
+        "Salve a foto de um prato no diário (JPEG, PNG, WebP ou HEIC, até 8 MB) no Backblaze B2. Passe o caminho local do arquivo. Use depois de fotografar a refeição.",
+      schema: z.object({
+        path: z
+          .string()
+          .min(1, "path é obrigatório")
+          .describe("Caminho local da foto no computador."),
+        meal: mealSchema,
+        date: dateSchema,
+      }),
+      async run({ path, meal, date }) {
+        const payload = await client.logPhoto({ path, meal, date });
+        const photo = payload.photo ?? {};
+        return result(`Foto salva no ${MEAL_LABELS[meal] || meal} (id ${photo.id}).`, payload);
+      },
+    }),
+
+    tool({
+      name: "delete_photo",
+      description: "Remova uma foto do diário pelo id retornado em log_photo ou get_day.",
+      schema: z.object({ id: z.number().int().positive().describe("Id da foto.") }),
+      async run({ id }) {
+        await client.deletePhoto({ id });
+        return result(`Foto ${id} removida do diário.`, { id });
+      },
+    }),
+
+    tool({
       name: "delete_entry",
       description: "Remova um registro do diário pelo id. O id aparece em get_day.",
       schema: z.object({ id: z.number().int().positive().describe("Id do registro.") }),
@@ -364,14 +393,19 @@ function renderDay(day) {
   lines.push("", "Refeições:");
   for (const meal of day.meals ?? []) {
     const label = MEAL_LABELS[meal.meal] ?? meal.meal;
-    if (!meal.count) {
+    const photos = (meal.photos ?? []).map((p) => `foto ${p.id}`).join(", ");
+    if (!meal.count && !photos) {
       lines.push(`- ${label}: nada registrado`);
       continue;
     }
-    const items = meal.entries
+    const items = (meal.entries ?? [])
       .map((e) => `id ${e.id} ${e.food_name} ${grams(e.grams)} g (${number(e.kcal)} kcal)`)
       .join("; ");
-    lines.push(`- ${label} — ${number(meal.kcal)} kcal: ${items}`);
+    const bits = [];
+    if (items) bits.push(items);
+    if (photos) bits.push(photos);
+    const detail = bits.length ? `: ${bits.join(" · ")}` : "";
+    lines.push(`- ${label} — ${number(meal.kcal)} kcal${detail}`);
   }
   return lines.join("\n");
 }

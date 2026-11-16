@@ -70,6 +70,7 @@ func (h *Handler) diary(w http.ResponseWriter, r *http.Request) {
 	type mealGroup struct {
 		Meal    string      `json:"meal"`
 		Entries []entryJSON `json:"entries"`
+		Photos  []photoJSON `json:"photos"`
 		Count   int         `json:"count"`
 		Kcal    float64     `json:"kcal"`
 	}
@@ -78,18 +79,28 @@ func (h *Handler) diary(w http.ResponseWriter, r *http.Request) {
 	for _, e := range entries {
 		byMeal[e.Meal] = append(byMeal[e.Meal], toEntryJSON(e))
 	}
+	photosByMeal := map[nutrition.Meal][]photoJSON{}
+	if listed, err := h.store.ListMealPhotos(userID, day); err == nil {
+		for _, p := range listed {
+			photosByMeal[p.Meal] = append(photosByMeal[p.Meal], toPhotoJSON(p))
+		}
+	}
 	meals := make([]mealGroup, 0, len(nutrition.MealOrder()))
 	for _, m := range nutrition.MealOrder() {
 		items := byMeal[m]
 		if items == nil {
 			items = []entryJSON{}
 		}
+		pics := photosByMeal[m]
+		if pics == nil {
+			pics = []photoJSON{}
+		}
 		var kcal float64
 		for _, it := range items {
 			kcal += it.Kcal
 		}
 		meals = append(meals, mealGroup{
-			Meal: string(m), Entries: items, Count: len(items), Kcal: round1(kcal),
+			Meal: string(m), Entries: items, Photos: pics, Count: len(items), Kcal: round1(kcal),
 		})
 	}
 

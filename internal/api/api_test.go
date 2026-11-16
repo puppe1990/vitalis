@@ -33,7 +33,7 @@ func newTestAPI(t *testing.T) (http.Handler, string, int64, store.Store) {
 		t.Fatal(err)
 	}
 
-	return NewHandler(s), token, userID, s
+	return NewHandler(s, nil), token, userID, s
 }
 
 func doJSON(t *testing.T, h http.Handler, method, path, token string, body any) *httptest.ResponseRecorder {

@@ -14,7 +14,8 @@ import (
 func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	home := handlers.NewHomeHandler(deps.Views, deps.Site, deps.Catalog, cfg)
 	auth := handlers.NewAuthHandler(deps.Views, deps.Store, deps.Site, deps.Store.Sessions(), cfg, deps.Catalog)
-	diary := handlers.NewDiaryHandler(deps.Views, deps.Store, deps.Site, deps.Catalog, cfg)
+	diary := handlers.NewDiaryHandler(deps.Views, deps.Store, deps.Site, deps.Catalog, cfg, deps.Photos)
+	mealPhotos := handlers.NewPhotosHandler(deps.Photos, deps.Catalog, cfg)
 	foods := handlers.NewFoodsHandler(deps.Views, deps.Store, deps.Site, deps.Catalog, cfg)
 	progress := handlers.NewProgressHandler(deps.Views, deps.Store, deps.Site, deps.Catalog, cfg)
 	goals := handlers.NewGoalsHandler(deps.Views, deps.Store, deps.Site, deps.Catalog, cfg)
@@ -43,6 +44,9 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	r.Post("/diario/entradas", middleware.RequireAuthFunc("/login", diary.AddEntryPost))
 	r.Post("/alimentos/{id}/registrar", middleware.RequireAuthFunc("/login", diary.QuickAddPost))
 	r.Post("/diario/entradas/{id}/remover", middleware.RequireAuthFunc("/login", diary.DeleteEntryPost))
+	r.Post("/diario/fotos", middleware.RequireAuthFunc("/login", mealPhotos.UploadPost))
+	r.Get("/diario/fotos/{id}", middleware.RequireAuthFunc("/login", mealPhotos.Serve))
+	r.Post("/diario/fotos/{id}/remover", middleware.RequireAuthFunc("/login", mealPhotos.DeletePost))
 
 	r.Get("/alimentos", middleware.RequireAuthFunc("/login", foods.Browse))
 	r.Get("/alimentos/novo", middleware.RequireAuthFunc("/login", foods.New))
@@ -60,7 +64,7 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	// The MCP server's transport: bearer-token auth, no CSRF cookie. The token
 	// is validated by the API handler itself, so the prefix is registered as a
 	// bearer API for CSRF exemption rather than skipping the check globally.
-	apiHandler := api.NewHandler(deps.Store)
+	apiHandler := api.NewHandler(deps.Store, deps.Photos)
 	r.Handle("GET "+api.Prefix+"/", apiHandler)
 	r.Handle("POST "+api.Prefix+"/", apiHandler)
 	r.Handle("DELETE "+api.Prefix+"/", apiHandler)

@@ -44,6 +44,9 @@ O app expõe `/api/v1` autenticado por **Bearer token** (criado em _Sua meta →
 | POST     | `/api/v1/foods`                     | cria alimento manual (valores por 100 g)             |
 | POST     | `/api/v1/entries`                   | registra porção (`food_id`, `grams`, `meal`, `date`) |
 | DELETE   | `/api/v1/entries/{id}`              | remove registro                                      |
+| POST     | `/api/v1/photos`                    | salva foto do prato (multipart `photo` + `meal`)     |
+| GET      | `/api/v1/photos/{id}`               | baixa a foto (bytes)                                 |
+| DELETE   | `/api/v1/photos/{id}`               | remove a foto                                        |
 | POST     | `/api/v1/water`                     | soma hidratação                                      |
 | GET/POST | `/api/v1/goal`                      | lê / recalcula a meta                                |
 | GET      | `/api/v1/progress?d=`               | resumo semanal                                       |
@@ -56,7 +59,7 @@ cd mcp && npm install
 VITALIS_URL=http://127.0.0.1:4258 VITALIS_TOKEN=vit_... node src/index.js
 ```
 
-Ferramentas: `get_day`, `search_foods`, `get_food`, `create_food`, `log_meal`, `delete_entry`, `add_water`, `get_goal`, `save_goal`, `get_progress`, `list_weight`, `save_weight`.
+Ferramentas: `get_day`, `search_foods`, `get_food`, `create_food`, `log_meal`, `log_photo`, `delete_photo`, `delete_entry`, `add_water`, `get_goal`, `save_goal`, `set_target`, `get_progress`, `list_weight`, `save_weight`.
 
 Registro em um cliente MCP:
 
@@ -80,6 +83,7 @@ Registro em um cliente MCP:
 | Caminho                | Responsabilidade                                                                       |
 | ---------------------- | -------------------------------------------------------------------------------------- |
 | `internal/nutrition/`  | matemática pura: escala, macros, saldo, metas, semana                                  |
+| `internal/photos/`     | fotos do prato: sniff, MemoryBucket, cliente B2                                        |
 | `internal/store/`      | SQLite + migrations + catálogo TACO                                                    |
 | `internal/handlers/`   | páginas HTML (`view.Write`)                                                            |
 | `internal/api/`        | API JSON `/api/v1`                                                                     |
@@ -92,6 +96,8 @@ Registro em um cliente MCP:
 `cleat__deploy app=vitalis ref=main` — porta 4258.
 
 Envs de produção: `ENV=production`, `PORT`, `APP_URL`, `ADMIN_TOKEN`, `LOCALE=pt`, `DB_PATH`.
+
+Fotos do prato (opcional): `B2_APPLICATION_KEY_ID`, `B2_APPLICATION_KEY`, `B2_BUCKET`. Sem as três, o diário esconde o formulário de foto. Balde privado; o app faz proxy em `GET /diario/fotos/{id}`. JPEG, PNG, WebP e HEIC, até 8 MB.
 
 ## Decisões que valem saber
 

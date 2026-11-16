@@ -21,12 +21,14 @@ import (
 
 	"github.com/puppe1990/vitalis/internal/api"
 	appi18n "github.com/puppe1990/vitalis/internal/i18n"
+	"github.com/puppe1990/vitalis/internal/photos"
 	"github.com/puppe1990/vitalis/internal/store"
 )
 
 type Deps struct {
 	Views     *view.Renderer
 	Store     store.Store
+	Photos    *photos.Library
 	StaticDir string
 	Site      meta.Site
 	Catalog   *i18n.Catalog
@@ -113,8 +115,8 @@ func New(cfg cais.Config, deps Deps) (*App, error) {
 			Addr:              cfg.Port,
 			Handler:           r,
 			ReadHeaderTimeout: 10 * time.Second,
-			ReadTimeout:       30 * time.Second,
-			WriteTimeout:      30 * time.Second,
+			ReadTimeout:       60 * time.Second,
+			WriteTimeout:      60 * time.Second,
 			IdleTimeout:       60 * time.Second,
 		},
 	}, nil

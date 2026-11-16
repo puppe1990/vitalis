@@ -26,7 +26,7 @@ export class VitalisClient {
     this.timeoutMs = timeoutMs;
   }
 
-  async request(method, path, { query, body } = {}) {
+  async request(method, path, { query, body, form } = {}) {
     const url = new URL(`${this.baseUrl}/api/v1${path}`);
     for (const [key, value] of Object.entries(query ?? {})) {
       if (value !== undefined && value !== null && value !== "") {
@@ -40,9 +40,11 @@ export class VitalisClient {
         Authorization: `Bearer ${this.token}`,
         Accept: "application/json",
       },
-      signal: AbortSignal.timeout(this.timeoutMs),
+      signal: AbortSignal.timeout(form ? Math.max(this.timeoutMs, 60_000) : this.timeoutMs),
     };
-    if (body !== undefined) {
+    if (form) {
+      init.body = form;
+    } else if (body !== undefined) {
       init.headers["Content-Type"] = "application/json";
       init.body = JSON.stringify(body);
     }
@@ -101,8 +103,27 @@ export class VitalisClient {
     });
   }
 
+  async logPhoto({ path, meal, date, filename, body }) {
+    let bytes = body;
+    let name = filename;
+    if (bytes === undefined) {
+      if (!path) throw new Error("logPhoto requires path or body");
+      const fs = await import("node:fs/promises");
+      bytes = await fs.readFile(path);
+      name = name || path.split(/[/\\]/).pop();
+    }
+    const form = new FormData();
+    form.set("meal", meal);
+    form.set("photo", new Blob([bytes]), name || "photo.jpg");
+    return this.request("POST", "/photos", { query: { d: date }, form });
+  }
+
   deleteEntry({ id }) {
     return this.request("DELETE", `/entries/${encodeURIComponent(id)}`);
+  }
+
+  deletePhoto({ id }) {
+    return this.request("DELETE", `/photos/${encodeURIComponent(id)}`);
   }
 
   addWater({ ml, date }) {

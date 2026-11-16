@@ -44,7 +44,8 @@ export function buildServer({ baseUrl, token, client } = {}) {
     {
       instructions:
         "Vitalis é um diário de calorias. Use get_day antes de sugerir uma refeição, " +
-        "search_foods para achar o id do alimento e log_meal para registrar a porção.",
+        "search_foods para achar o id do alimento e log_meal para registrar a porção. " +
+        "log_photo salva a foto do prato (caminho local) no Backblaze B2.",
     }
   );
 

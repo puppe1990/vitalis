@@ -13,6 +13,7 @@ import (
 
 	"github.com/puppe1990/vitalis/internal/models"
 	"github.com/puppe1990/vitalis/internal/nutrition"
+	"github.com/puppe1990/vitalis/internal/photos"
 	"github.com/puppe1990/vitalis/internal/store"
 )
 
@@ -24,10 +25,11 @@ type DiaryHandler struct {
 	site    meta.Site
 	catalog *i18n.Catalog
 	cfg     cais.Config
+	photos  *photos.Library
 }
 
-func NewDiaryHandler(views *view.Renderer, s store.Store, site meta.Site, catalog *i18n.Catalog, cfg cais.Config) *DiaryHandler {
-	return &DiaryHandler{views: views, store: s, site: site, catalog: catalog, cfg: cfg}
+func NewDiaryHandler(views *view.Renderer, s store.Store, site meta.Site, catalog *i18n.Catalog, cfg cais.Config, lib *photos.Library) *DiaryHandler {
+	return &DiaryHandler{views: views, store: s, site: site, catalog: catalog, cfg: cfg, photos: lib}
 }
 
 func (h *DiaryHandler) t(r *http.Request, key string, args ...any) string {
@@ -56,23 +58,50 @@ func (h *DiaryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	dayView := buildDayView(goal, entries, dayLog, day)
 	h.fillMealLabels(r, dayView.Meals)
+	if err := h.attachPhotos(userID, day, &dayView); err != nil {
+		httpxServerError(w, r, err, h.cfg)
+		return
+	}
 
 	writeView(w, r, h.views, h.cfg, "app", "diario", amarraData(r, h.site, map[string]any{
-		"Title":       h.t(r, "diario.title"),
-		"ActiveNav":   "diario",
-		"Day":         dayView,
-		"DayISO":      day.Format("2006-01-02"),
-		"DayLabel":    h.dayLabel(r, day),
-		"PrevURL":     dayPath("/diario", dayView.PreviousDay),
-		"NextURL":     dayPath("/diario", dayView.NextDay),
-		"TargetLabel": formatNumber(goal.TargetKcal),
-		"WaterLabel":  formatML(dayLog.WaterML),
-		"WaterTarget": formatML(goal.WaterML),
-		"StatusKey":   statusKey(dayView.Balance.Status, dayView.MealCount, day, time.Now()),
-		"AddWaterURL": dayPath("/diario/agua", day),
-		"RingOffset":  Fmt{}.RingOffset(nutrition.ProgressRatio(dayView.Total.Kcal, goal.TargetKcal)),
-		"FoodsURL":    "/alimentos",
+		"Title":         h.t(r, "diario.title"),
+		"ActiveNav":     "diario",
+		"Day":           dayView,
+		"DayISO":        day.Format("2006-01-02"),
+		"DayLabel":      h.dayLabel(r, day),
+		"PrevURL":       dayPath("/diario", dayView.PreviousDay),
+		"NextURL":       dayPath("/diario", dayView.NextDay),
+		"TargetLabel":   formatNumber(goal.TargetKcal),
+		"WaterLabel":    formatML(dayLog.WaterML),
+		"WaterTarget":   formatML(goal.WaterML),
+		"StatusKey":     statusKey(dayView.Balance.Status, dayView.MealCount, day, time.Now()),
+		"AddWaterURL":   dayPath("/diario/agua", day),
+		"RingOffset":    Fmt{}.RingOffset(nutrition.ProgressRatio(dayView.Total.Kcal, goal.TargetKcal)),
+		"FoodsURL":      "/alimentos",
+		"PhotosEnabled": h.photos.Enabled(),
 	}), 0)
+}
+
+func (h *DiaryHandler) attachPhotos(userID int64, day time.Time, dayView *DayView) error {
+	if !h.photos.Enabled() {
+		return nil
+	}
+	listed, err := h.photos.List(userID, day)
+	if err != nil {
+		return err
+	}
+	byMeal := map[nutrition.Meal][]PhotoView{}
+	for _, p := range listed {
+		byMeal[p.Meal] = append(byMeal[p.Meal], PhotoView{
+			ID:        p.ID,
+			URL:       "/diario/fotos/" + itoa(p.ID),
+			DeleteURL: "/diario/fotos/" + itoa(p.ID) + "/remover",
+		})
+	}
+	for i := range dayView.Meals {
+		dayView.Meals[i].Photos = byMeal[dayView.Meals[i].Meal]
+	}
+	return nil
 }
 
 func (h *DiaryHandler) fillMealLabels(r *http.Request, meals []MealView) {
