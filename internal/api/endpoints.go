@@ -430,6 +430,51 @@ func (h *Handler) saveGoal(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"goal": toGoalJSON(goal)})
 }
 
+// setTargetRequest pins only the calorie target.
+type setTargetRequest struct {
+	TargetKcal float64 `json:"target_kcal"`
+}
+
+// setTarget changes only the daily target, keeping whatever profile the user
+// already has. "Set my target to 2.500" must not force someone to re-enter
+// their height and age — and a client that only knows the target would have to
+// invent them otherwise, which is how a wrong profile gets persisted.
+func (h *Handler) setTarget(w http.ResponseWriter, r *http.Request) {
+	var req setTargetRequest
+	if !decodeBody(w, r, &req) {
+		return
+	}
+	if req.TargetKcal < nutrition.MinManualTargetKcal || req.TargetKcal > nutrition.MaxManualTargetKcal {
+		writeError(w, http.StatusUnprocessableEntity,
+			fmt.Sprintf("target_kcal must be between %v and %v",
+				nutrition.MinManualTargetKcal, nutrition.MaxManualTargetKcal))
+		return
+	}
+
+	userID := userIDFrom(r)
+	// GetGoal returns derived defaults when the user has never opened the form,
+	// so direction and water still have sane values to split macros from.
+	goal, err := h.store.GetGoal(userID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	budget := nutrition.GoalsFromTarget(req.TargetKcal, goal.Direction, goal.WaterML)
+	goal.TargetKcal = budget.TargetKcal
+	goal.ProteinG = budget.ProteinG
+	goal.CarbG = budget.CarbG
+	goal.FatG = budget.FatG
+	goal.WaterML = budget.WaterML
+	goal.TargetOverride = req.TargetKcal
+
+	if err := h.store.UpsertGoal(goal); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"goal": toGoalJSON(goal)})
+}
+
 func (h *Handler) progress(w http.ResponseWriter, r *http.Request) {
 	end, err := resolveDay(r)
 	if err != nil {

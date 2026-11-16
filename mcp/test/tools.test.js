@@ -29,6 +29,7 @@ function fakeClient(overrides = {}) {
     addWater: record("addWater"),
     getGoal: record("getGoal"),
     saveGoal: record("saveGoal"),
+    setTarget: record("setTarget"),
     getProgress: record("getProgress"),
     listWeight: record("listWeight"),
     saveWeight: record("saveWeight"),
@@ -59,6 +60,7 @@ describe("tool registry", () => {
       "save_goal",
       "save_weight",
       "search_foods",
+      "set_target",
     ]);
   });
 
@@ -329,6 +331,33 @@ describe("save_goal", () => {
         }),
       /age|idade/i
     );
+    assert.equal(client.calls.length, 0);
+  });
+});
+
+describe("set_target", () => {
+  it("pins the target without touching the profile", async () => {
+    const client = fakeClient({ setTarget: () => goal({ target_kcal: 2500 }) });
+    const tools = createTools(client);
+
+    await call(tools, "set_target", { target_kcal: 2500 });
+
+    assert.deepEqual(client.calls[0], { name: "setTarget", args: { targetKcal: 2500 } });
+  });
+
+  it("confirms the new number", async () => {
+    const tools = createTools(fakeClient({ setTarget: () => goal({ target_kcal: 2500 }) }));
+
+    const result = await call(tools, "set_target", { target_kcal: 2500 });
+
+    assert.match(result.text, /2\.500|2500/);
+  });
+
+  it("rejects an absurd target before the round trip", async () => {
+    const client = fakeClient();
+    const tools = createTools(client);
+
+    await assert.rejects(() => call(tools, "set_target", { target_kcal: 25000 }), /1200|6000/);
     assert.equal(client.calls.length, 0);
   });
 });

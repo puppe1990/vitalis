@@ -41,6 +41,7 @@ func NewHandler(s store.Store) http.Handler {
 	h.mux.HandleFunc("POST /api/v1/water", h.auth(h.addWater))
 	h.mux.HandleFunc("GET /api/v1/goal", h.auth(h.getGoal))
 	h.mux.HandleFunc("POST /api/v1/goal", h.auth(h.saveGoal))
+	h.mux.HandleFunc("POST /api/v1/goal/target", h.auth(h.setTarget))
 	h.mux.HandleFunc("GET /api/v1/progress", h.auth(h.progress))
 	h.mux.HandleFunc("GET /api/v1/weight", h.auth(h.listWeight))
 	h.mux.HandleFunc("POST /api/v1/weight", h.auth(h.saveWeight))

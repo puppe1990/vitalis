@@ -117,6 +117,10 @@ export class VitalisClient {
     return this.request("POST", "/goal", { body: profile });
   }
 
+  setTarget({ targetKcal }) {
+    return this.request("POST", "/goal/target", { body: { target_kcal: targetKcal } });
+  }
+
   getProgress({ date } = {}) {
     return this.request("GET", "/progress", { query: { d: date } });
   }

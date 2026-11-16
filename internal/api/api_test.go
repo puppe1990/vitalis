@@ -504,3 +504,82 @@ func TestHandler_goalWithoutTargetStaysCalculated(t *testing.T) {
 		t.Errorf("target_source = %q, want calculated", got.Goal.TargetSource)
 	}
 }
+
+// "Set my target to 2.500" must not require the whole profile: a client that
+// only knows the number would otherwise invent height and age to get through
+// validation, persisting a wrong profile.
+func TestHandler_setTarget_keepsTheProfile(t *testing.T) {
+	h, token, userID, s := newTestAPI(t)
+
+	// Give the user a real profile first.
+	if err := s.UpsertGoal(models.Goal{
+		UserID: userID, TargetKcal: 2000, ProteinG: 150, CarbG: 200, FatG: 67,
+		WaterML: 2800, Sex: nutrition.SexMale, AgeYears: 34, HeightCM: 180,
+		WeightKG: 93.2, Activity: nutrition.ActivityModerate,
+		Direction: nutrition.GoalLose,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	rr := doJSON(t, h, http.MethodPost, "/api/v1/goal/target", token, map[string]any{"target_kcal": 2500})
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", rr.Code, rr.Body.String())
+	}
+
+	var got struct {
+		Goal struct {
+			TargetKcal     float64 `json:"target_kcal"`
+			TargetOverride float64 `json:"target_override"`
+			TargetSource   string  `json:"target_source"`
+			HeightCM       float64 `json:"height_cm"`
+			AgeYears       int     `json:"age_years"`
+			WaterML        float64 `json:"water_ml"`
+		} `json:"goal"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Goal.TargetKcal != 2500 || got.Goal.TargetOverride != 2500 {
+		t.Errorf("target = %v / override = %v, want 2500", got.Goal.TargetKcal, got.Goal.TargetOverride)
+	}
+	if got.Goal.TargetSource != "manual" {
+		t.Errorf("source = %q, want manual", got.Goal.TargetSource)
+	}
+	if got.Goal.HeightCM != 180 || got.Goal.AgeYears != 34 {
+		t.Errorf("profile was clobbered: %+v", got.Goal)
+	}
+	if got.Goal.WaterML != 2800 {
+		t.Errorf("water target = %v, want the stored 2800", got.Goal.WaterML)
+	}
+}
+
+func TestHandler_setTarget_worksWithNoProfileYet(t *testing.T) {
+	h, token, _, _ := newTestAPI(t)
+
+	rr := doJSON(t, h, http.MethodPost, "/api/v1/goal/target", token, map[string]any{"target_kcal": 2500})
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", rr.Code, rr.Body.String())
+	}
+	var got struct {
+		Goal struct {
+			TargetKcal float64 `json:"target_kcal"`
+		} `json:"goal"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Goal.TargetKcal != 2500 {
+		t.Errorf("target = %v, want 2500", got.Goal.TargetKcal)
+	}
+}
+
+func TestHandler_setTarget_rejectsAbsurdValues(t *testing.T) {
+	h, token, _, _ := newTestAPI(t)
+
+	for _, v := range []float64{500, 25000} {
+		rr := doJSON(t, h, http.MethodPost, "/api/v1/goal/target", token, map[string]any{"target_kcal": v})
+		if rr.Code != http.StatusUnprocessableEntity {
+			t.Errorf("target %v: status = %d, want 422", v, rr.Code)
+		}
+	}
+}

@@ -276,6 +276,28 @@ export function createTools(client) {
     }),
 
     tool({
+      name: "set_target",
+      description:
+        "Fixe a meta diária de calorias sem mexer no perfil. Use quando a pessoa já sabe o número que quer; os macros são recalculados a partir dele.",
+      schema: z.object({
+        target_kcal: z
+          .number()
+          .min(1200, "target_kcal deve ser entre 1200 e 6000")
+          .max(6000, "target_kcal deve ser entre 1200 e 6000")
+          .describe("Meta diária em kcal."),
+      }),
+      async run({ target_kcal }) {
+        const payload = await client.setTarget({ targetKcal: target_kcal });
+        const g = payload.goal;
+        return result(
+          `Meta fixada em ${number(g.target_kcal)} kcal · P ${grams(g.protein_g)}g ` +
+            `C ${grams(g.carb_g)}g G ${grams(g.fat_g)}g.`,
+          payload
+        );
+      },
+    }),
+
+    tool({
       name: "get_progress",
       description:
         "Resumo da semana: média diária, aderência à meta, saldo calórico e os dias de pico e de menor consumo.",

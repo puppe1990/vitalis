@@ -62,6 +62,7 @@ describe("MCP server", () => {
       "save_goal",
       "save_weight",
       "search_foods",
+      "set_target",
     ]);
     assert.ok(
       tools.every((t) => t.inputSchema),
