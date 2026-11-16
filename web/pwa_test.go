@@ -61,6 +61,31 @@ func TestPWAIcons_areSquareVitalisGreen(t *testing.T) {
 	}
 }
 
+func TestServiceWorker_bustsIconCacheAfterSwap(t *testing.T) {
+	body, err := os.ReadFile("static/js/sw.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// CACHE_VERSION 2 already precached the Cais placeholder PNGs. A later
+	// swap of the bytes at the same URLs stays invisible until this bumps.
+	if strings.Contains(string(body), "const CACHE_VERSION = 2;") {
+		t.Fatal("CACHE_VERSION is still 2; cache-first keeps the old Cais icons")
+	}
+}
+
+func TestManifest_iconSrcsBustHTTPCache(t *testing.T) {
+	body, err := os.ReadFile("static/manifest.webmanifest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	src := string(body)
+	for _, name := range []string{"icon-192.png", "icon-512.png", "icon-512-maskable.png"} {
+		if !strings.Contains(src, name+"?") {
+			t.Errorf("%s src has no cache-busting query; /static/icons/ is cached for a year", name)
+		}
+	}
+}
+
 func TestManifest_isVitalisNotCaisScaffold(t *testing.T) {
 	body, err := os.ReadFile("static/manifest.webmanifest")
 	if err != nil {

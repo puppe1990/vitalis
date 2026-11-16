@@ -98,6 +98,24 @@ func TestHomeHandler_loggedInRedirectsToDiary(t *testing.T) {
 	}
 }
 
+func TestHomeHandler_pwaIconLinksReachTheOS(t *testing.T) {
+	h := newHomeHandler(t)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+	body := rr.Body.String()
+
+	if !strings.Contains(body, `href="/apple-touch-icon.png"`) {
+		t.Error("apple-touch-icon must be at /apple-touch-icon.png; iOS does not look under /static/")
+	}
+	if !strings.Contains(body, `href="/manifest.webmanifest"`) {
+		t.Error("manifest must be at /manifest.webmanifest so Go can set application/manifest+json")
+	}
+	if strings.Contains(body, `href="/static/favicon.svg"`) && !strings.Contains(body, `favicon.svg?`) {
+		t.Error("favicon URL must be cache-busted; /static/favicon.svg is cached for a year")
+	}
+}
+
 // #208: the guest page must not offer chrome that bounces off the login gate.
 func TestHomeHandler_anonymousHidesAppChrome(t *testing.T) {
 	h := newHomeHandler(t)

@@ -24,6 +24,12 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	loginLimit := middleware.NewRateLimiter(10, cfg)
 	resetLimit := middleware.NewRateLimiter(10, cfg)
 
+	pwa := handlers.PWAAssets{Dir: deps.StaticDir}
+	r.Get("/manifest.webmanifest", pwa.Manifest)
+	r.Get("/apple-touch-icon.png", pwa.AppleTouch)
+	r.Get("/apple-touch-icon-precomposed.png", pwa.AppleTouch)
+	r.Get("/favicon.ico", pwa.FaviconICO)
+
 	r.Get("/", home.ServeHTTP)
 	r.Get("/login", auth.Login)
 	r.Post("/login", loginLimit.Middleware(http.HandlerFunc(auth.LoginPost)).ServeHTTP)
