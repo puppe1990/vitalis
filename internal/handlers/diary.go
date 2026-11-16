@@ -30,6 +30,10 @@ func NewDiaryHandler(views *view.Renderer, s store.Store, site meta.Site, catalo
 	return &DiaryHandler{views: views, store: s, site: site, catalog: catalog, cfg: cfg}
 }
 
+func (h *DiaryHandler) t(r *http.Request, key string, args ...any) string {
+	return translate(r, h.catalog, key, args...)
+}
+
 func (h *DiaryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	userID := currentUserID(r)
 	day := resolveDay(r)

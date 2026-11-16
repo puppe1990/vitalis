@@ -8,13 +8,6 @@ import (
 	"github.com/puppe1990/amarra-cais/pkg/cais/httpx"
 )
 
-// h.t is the per-handler translator: CatalogOr keeps the request locale for
-// handler copy while the boot catalog remains the unit-test fallback (#211).
-
-func (h *DiaryHandler) t(r *http.Request, key string, args ...any) string {
-	return translate(r, h.catalog, key, args...)
-}
-
 // httpxServerError renders the framework's error page with the request's
 // config. Wrapping it keeps handlers from repeating the call shape.
 func httpxServerError(w http.ResponseWriter, r *http.Request, err error, cfg cais.Config) {
