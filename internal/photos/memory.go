@@ -24,6 +24,12 @@ func NewMemoryBucket() *MemoryBucket {
 	return &MemoryBucket{files: map[string]memoryObject{}}
 }
 
+// PublicURL is the native B2 download shape so diary tests assert the <img>
+// hits the bucket, not the app proxy.
+func (b *MemoryBucket) PublicURL(key string) string {
+	return "https://f005.backblazeb2.com/file/memory/" + key
+}
+
 func (b *MemoryBucket) Put(_ context.Context, key string, body io.Reader, size int64, contentType string) error {
 	data, err := io.ReadAll(io.LimitReader(body, size+1))
 	if err != nil {

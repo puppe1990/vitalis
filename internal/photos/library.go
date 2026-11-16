@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/puppe1990/vitalis/internal/models"
@@ -35,6 +36,7 @@ type Bucket interface {
 	Put(ctx context.Context, key string, body io.Reader, size int64, contentType string) error
 	Open(ctx context.Context, key string) (Object, error)
 	Remove(ctx context.Context, key string) error
+	PublicURL(key string) string
 }
 
 // Library is the diary's photo use case: sniff, put, index, serve, delete.
@@ -49,6 +51,27 @@ func New(s store.Store, bucket Bucket) *Library {
 
 func (l *Library) Enabled() bool {
 	return l != nil && l.bucket != nil
+}
+
+func (l *Library) PublicURL(key string) string {
+	if !l.Enabled() {
+		return ""
+	}
+	return l.bucket.PublicURL(key)
+}
+
+// AppendB2ImgSrc adds the Backblaze download host to CSP img-src so the
+// diary <img> can load the public object. Repeating the call is a no-op.
+func AppendB2ImgSrc(existing string) string {
+	const host = "https://*.backblazeb2.com"
+	if strings.Contains(existing, "backblazeb2.com") {
+		return existing
+	}
+	existing = strings.TrimSpace(existing)
+	if existing == "" {
+		return host
+	}
+	return existing + " " + host
 }
 
 // SaveInput is one uploaded plate photo.

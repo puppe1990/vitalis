@@ -60,6 +60,20 @@ func TestClient_PutOpenRemove(t *testing.T) {
 	}
 }
 
+func TestClient_PublicURL(t *testing.T) {
+	srv := fakeB2(t)
+	client := New(Config{
+		KeyID: "key-id", AppKey: "key-secret", Bucket: "vitalis-photos",
+		Endpoint: srv.URL, HTTP: srv.Client(),
+	})
+	key := "users/1/2026-11-16/almoco/a.jpg"
+	got := client.PublicURL(key)
+	want := srv.URL + "/file/vitalis-photos/" + key
+	if got != want {
+		t.Errorf("PublicURL = %q, want %q", got, want)
+	}
+}
+
 func TestClient_PutRejectsBadAuth(t *testing.T) {
 	srv := fakeB2(t)
 	client := New(Config{

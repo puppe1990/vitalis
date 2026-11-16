@@ -92,9 +92,13 @@ func (h *DiaryHandler) attachPhotos(userID int64, day time.Time, dayView *DayVie
 	}
 	byMeal := map[nutrition.Meal][]PhotoView{}
 	for _, p := range listed {
+		src := h.photos.PublicURL(p.B2Key)
+		if src == "" {
+			src = "/diario/fotos/" + itoa(p.ID)
+		}
 		byMeal[p.Meal] = append(byMeal[p.Meal], PhotoView{
 			ID:        p.ID,
-			URL:       "/diario/fotos/" + itoa(p.ID),
+			URL:       src,
 			DeleteURL: "/diario/fotos/" + itoa(p.ID) + "/remover",
 		})
 	}

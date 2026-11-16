@@ -70,6 +70,7 @@ func run() error {
 }
 
 func bootstrapWithConfig(ctx context.Context, cfg cais.Config) (*app.App, error) {
+	cfg.CSPImgSrc = photos.AppendB2ImgSrc(cfg.CSPImgSrc)
 	catalog := appi18n.NewCatalog(cfg.Locale)
 	catalogs := map[string]*i18n.Catalog{
 		"en": appi18n.NewCatalog("en"),

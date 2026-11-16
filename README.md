@@ -97,7 +97,7 @@ Registro em um cliente MCP:
 
 Envs de produção: `ENV=production`, `PORT`, `APP_URL`, `ADMIN_TOKEN`, `LOCALE=pt`, `DB_PATH`.
 
-Fotos do prato (opcional): `B2_APPLICATION_KEY_ID`, `B2_APPLICATION_KEY`, `B2_BUCKET`. Sem as três, o diário esconde o formulário de foto. Balde privado; o app faz proxy em `GET /diario/fotos/{id}`. JPEG, PNG, WebP e HEIC, até 8 MB.
+Fotos do prato (opcional): `B2_APPLICATION_KEY_ID`, `B2_APPLICATION_KEY`, `B2_BUCKET`. Sem as três, o diário esconde o formulário de foto. Balde público; o `<img>` aponta para a URL nativa do B2 (`{downloadUrl}/file/{bucket}/{key}`). `GET /diario/fotos/{id}` continua como proxy autenticado. JPEG, PNG, WebP e HEIC, até 8 MB.
 
 ## Decisões que valem saber
 
