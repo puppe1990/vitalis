@@ -83,7 +83,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     {{ if .CSRFToken }}<meta name="csrf-token" content="{{ .CSRFToken }}" />{{ end }}
-    <title>{{ if .Title }}{{ .Title }} · Vitalis{{ else }}Vitalis{{ end }}</title>
+    <title>{{ if and .Title (ne .Title "Vitalis") }}{{ .Title }} · Vitalis{{ else }}Vitalis{{ end }}</title>
     <meta name="description" content="Contador de calorias com diário, metas calculadas e acesso por MCP." />
     <meta name="robots" content="noindex, nofollow" />
     <meta property="og:type" content="website" />

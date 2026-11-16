@@ -82,3 +82,31 @@ func TestGoals_activityRaisesTarget(t *testing.T) {
 		t.Errorf("active %v <= sedentary %v", active.TargetKcal, sedentary.TargetKcal)
 	}
 }
+
+// The handlers and the JSON API both validate with these, so a drift between
+// the accepted list and the calculation's own table would be a real bug.
+func TestActivity_ValidMatchesTheFactorTable(t *testing.T) {
+	for _, a := range []Activity{ActivitySedentary, ActivityLight, ActivityModerate, ActivityActive} {
+		if !a.Valid() {
+			t.Errorf("%q should be valid", a)
+		}
+	}
+	for _, a := range []Activity{"", "extreme", "ACTIVE"} {
+		if Activity(a).Valid() {
+			t.Errorf("%q should be invalid", a)
+		}
+	}
+}
+
+func TestGoal_ValidMatchesTheSplitTable(t *testing.T) {
+	for _, g := range []Goal{GoalLose, GoalMaintain, GoalGain} {
+		if !g.Valid() {
+			t.Errorf("%q should be valid", g)
+		}
+	}
+	for _, g := range []Goal{"", "bulk", "LOSE"} {
+		if Goal(g).Valid() {
+			t.Errorf("%q should be invalid", g)
+		}
+	}
+}

@@ -38,15 +38,10 @@ func validateProfile(p nutrition.Profile) error {
 	if p.WeightKG < 35 || p.WeightKG > 300 {
 		return fmt.Errorf("weight_kg %v must be between 35 and 300", p.WeightKG)
 	}
-	switch p.Activity {
-	case nutrition.ActivitySedentary, nutrition.ActivityLight,
-		nutrition.ActivityModerate, nutrition.ActivityActive:
-	default:
+	if !p.Activity.Valid() {
 		return fmt.Errorf("activity %q must be sedentary, light, moderate or active", p.Activity)
 	}
-	switch p.Goal {
-	case nutrition.GoalLose, nutrition.GoalMaintain, nutrition.GoalGain:
-	default:
+	if !p.Goal.Valid() {
 		return fmt.Errorf("direction %q must be lose, maintain or gain", p.Goal)
 	}
 	return nil

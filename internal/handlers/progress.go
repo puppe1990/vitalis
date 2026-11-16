@@ -59,12 +59,18 @@ func (h *ProgressHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	share, err := h.weekMacroShare(userID, end)
+	if err != nil {
+		httpxServerError(w, r, err, h.cfg)
+		return
+	}
+
 	writeView(w, r, h.views, h.cfg, "app", "progresso", amarraData(r, h.site, map[string]any{
 		"Title":          h.t(r, "progresso.title"),
 		"ActiveNav":      "progresso",
 		"Summary":        summary,
 		"Bars":           barViews(summary.Days, goal.TargetKcal),
-		"MacroShare":     h.weekMacroShare(userID, end),
+		"MacroShare":     share,
 		"Weights":        weights,
 		"WeightPoints":   weightPolyline(weights),
 		"LatestWeight":   latestWeightLabel(weights),
@@ -102,17 +108,17 @@ func (h *ProgressHandler) weekTotals(userID int64, target float64, end time.Time
 	return days, nil
 }
 
-func (h *ProgressHandler) weekMacroShare(userID int64, end time.Time) nutrition.MacroPercent {
+func (h *ProgressHandler) weekMacroShare(userID int64, end time.Time) (nutrition.MacroPercent, error) {
 	start := end.AddDate(0, 0, -(progressDays - 1))
 	var all []models.Entry
 	for i := 0; i < progressDays; i++ {
 		entries, err := h.store.ListEntries(userID, start.AddDate(0, 0, i))
 		if err != nil {
-			continue
+			return nutrition.MacroPercent{}, err
 		}
 		all = append(all, entries...)
 	}
-	return nutrition.MacroShare(nutrition.Sum(nutrientsOf(all)...))
+	return nutrition.MacroShare(nutrition.Sum(nutrientsOf(all)...)), nil
 }
 
 // targetLinePct places the dashed goal line in the same 0-100 space the bars

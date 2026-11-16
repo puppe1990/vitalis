@@ -58,6 +58,19 @@ const MinTargetKcal = 1200
 // renders before the user fills in the goal form.
 const DefaultTargetKcal = 2000
 
+// Valid reports whether a is one of the four activity bands. Handlers validate
+// with this instead of keeping their own list in sync with activityFactor.
+func (a Activity) Valid() bool {
+	_, ok := activityFactor[a]
+	return ok
+}
+
+// Valid reports whether g is one of the three goal directions.
+func (g Goal) Valid() bool {
+	_, ok := goalMacroSplit[g]
+	return ok
+}
+
 // Profile is the subset of the user's goal form the calculation needs.
 type Profile struct {
 	Sex      Sex      `json:"sex"`

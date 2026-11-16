@@ -139,17 +139,17 @@ func validateProfile(p nutrition.Profile) map[string]string {
 	if p.WeightKG < 35 || p.WeightKG > 300 {
 		errs["weight_kg"] = "Informe um peso entre 35 e 300 kg."
 	}
-	if _, ok := nutritionActivityFactor(p.Activity); !ok {
+	if !p.Activity.Valid() {
 		errs["activity"] = "Escolha um nível de atividade."
 	}
-	if _, ok := nutritionGoalOptions()[p.Goal]; !ok {
+	if !p.Goal.Valid() {
 		errs["direction"] = "Escolha um objetivo."
 	}
 	return errs
 }
 
-// activityOptions is the select payload. The labels are i18n keys resolved in
-// the template so a locale switch does not need a second map.
+// activityOptions is the pill-group payload. The labels are i18n keys resolved
+// in the template so a locale switch does not need a second map.
 func activityOptions() []Option {
 	return []Option{
 		{Value: string(nutrition.ActivitySedentary), LabelKey: "goals.sedentary"},
@@ -167,25 +167,8 @@ func directionOptions() []Option {
 	}
 }
 
-// Option is one <option> of a goal form select.
+// Option is one radio pill of the goal form.
 type Option struct {
 	Value    string
 	LabelKey string
-}
-
-func nutritionActivityFactor(a nutrition.Activity) (float64, bool) {
-	for _, opt := range activityOptions() {
-		if opt.Value == string(a) {
-			return 1, true
-		}
-	}
-	return 0, false
-}
-
-func nutritionGoalOptions() map[nutrition.Goal]struct{} {
-	out := map[nutrition.Goal]struct{}{}
-	for _, opt := range directionOptions() {
-		out[nutrition.Goal(opt.Value)] = struct{}{}
-	}
-	return out
 }
