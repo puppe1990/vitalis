@@ -78,7 +78,19 @@ func newTestEnv(t *testing.T) testEnv {
 // that catches it is one that renders the page.
 func TestPages_rendersEveryPageWithRealData(t *testing.T) {
 	env := newTestEnv(t)
-	h := newPageHandlers(t, env)
+
+	// Both catalogs run: the test suite boots English, production boots pt, and
+	// a key that only exists in one of them would otherwise ship unchecked.
+	for _, locale := range []string{"en", "pt"} {
+		t.Run(locale, func(t *testing.T) {
+			renderEveryPage(t, env, locale)
+		})
+	}
+}
+
+func renderEveryPage(t *testing.T, env testEnv, locale string) {
+	t.Helper()
+	h := newPageHandlers(t, env, locale)
 
 	cases := []struct {
 		name   string
@@ -109,8 +121,14 @@ func TestPages_rendersEveryPageWithRealData(t *testing.T) {
 			if !strings.Contains(rr.Body.String(), tc.want) {
 				t.Errorf("body missing %q", tc.want)
 			}
-			if strings.Contains(rr.Body.String(), "internal server error") {
+			body := rr.Body.String()
+			if strings.Contains(body, "internal server error") {
 				t.Error("page rendered the framework error page")
+			}
+			// A bad format verb renders `%!d(string=…)` with no error and no
+			// 500 — the page looks fine until someone reads that line.
+			if strings.Contains(body, "%!") {
+				t.Errorf("page has a format-verb mismatch: %s", formatMismatch(body))
 			}
 		})
 	}
@@ -145,7 +163,7 @@ func TestPages_rendersPortugueseCopy(t *testing.T) {
 // The detail page reads the id from the path pattern.
 func TestPages_alimentoUsesPathValue(t *testing.T) {
 	env := newTestEnv(t)
-	h := newPageHandlers(t, env)
+	h := newPageHandlers(t, env, "pt")
 
 	req := signedIn(t, env, http.MethodGet, "/alimento/1")
 	rr := httptest.NewRecorder()
@@ -164,16 +182,17 @@ type pageHandlers struct {
 	tokens   *APITokensPage
 }
 
-func newPageHandlers(t *testing.T, env testEnv) pageHandlers {
+func newPageHandlers(t *testing.T, env testEnv, locale string) pageHandlers {
 	t.Helper()
-	catalog := appi18n.DefaultCatalog()
+	catalog := appi18n.NewCatalog(locale)
+	views := setupTestViewsFor(t, locale)
 	cfg := cais.Config{}
 	return pageHandlers{
-		diary:    NewDiaryHandler(env.views, env.store, testSite(), catalog, cfg),
-		foods:    NewFoodsHandler(env.views, env.store, testSite(), catalog, cfg),
-		progress: NewProgressHandler(env.views, env.store, testSite(), catalog, cfg),
-		goals:    NewGoalsHandler(env.views, env.store, testSite(), catalog, cfg),
-		tokens:   NewAPITokensPage(env.views, env.store, testSite(), catalog, cfg),
+		diary:    NewDiaryHandler(views, env.store, testSite(), catalog, cfg),
+		foods:    NewFoodsHandler(views, env.store, testSite(), catalog, cfg),
+		progress: NewProgressHandler(views, env.store, testSite(), catalog, cfg),
+		goals:    NewGoalsHandler(views, env.store, testSite(), catalog, cfg),
+		tokens:   NewAPITokensPage(views, env.store, testSite(), catalog, cfg),
 	}
 }
 
@@ -204,6 +223,20 @@ func setupTestViewsFor(t *testing.T, locale string) *view.Renderer {
 		t.Fatal(err)
 	}
 	return r
+}
+
+// formatMismatch extracts the first `%!…` fragment so a failure names the verb
+// instead of dumping the whole page.
+func formatMismatch(body string) string {
+	i := strings.Index(body, "%!")
+	if i < 0 {
+		return ""
+	}
+	end := i + 40
+	if end > len(body) {
+		end = len(body)
+	}
+	return body[i:end]
 }
 
 func firstLines(body string) string {

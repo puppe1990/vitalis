@@ -122,7 +122,7 @@
     <div class="flex items-end gap-2">
       <span class="text-numeric-metric tabular text-on-surface leading-none">{{ .LatestWeight }}</span>
     </div>
-    <span class="text-body-sm text-on-surface-variant">{{ t "progresso.weight_hint" (.Fmt.Number .WeightDays) }}</span>
+    <span class="text-body-sm text-on-surface-variant">{{ t "progresso.weight_hint" .WeightDays }}</span>
 
     {{ if .HasWeight }}
     <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="w-full h-24" aria-hidden="true">
