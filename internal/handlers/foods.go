@@ -63,18 +63,17 @@ func (h *FoodsHandler) Browse(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeView(w, r, h.views, h.cfg, "app", "alimentos", amarraData(r, h.site, map[string]any{
-		"Title":        h.t(r, "alimentos.title"),
-		"ActiveNav":    "alimentos",
-		"Foods":        foods,
-		"Categories":   categories,
-		"Search":       search,
-		"Category":     query.Get("category"),
-		"Meal":         meal,
-		"MealLabel":    h.t(r, "meal."+string(meal)),
-		"GoalLabel":    formatNumber(goal.TargetKcal),
-		"DayISO":       day.Format("2006-01-02"),
-		"Empty":        len(foods) == 0,
-		"NoCategories": len(categories) == 0,
+		"Title":      h.t(r, "alimentos.title"),
+		"ActiveNav":  "alimentos",
+		"Foods":      foods,
+		"Categories": categories,
+		"Search":     search,
+		"Category":   query.Get("category"),
+		"Meal":       meal,
+		"MealLabel":  h.t(r, "meal."+string(meal)),
+		"GoalLabel":  formatNumber(goal.TargetKcal),
+		"DayISO":     day.Format("2006-01-02"),
+		"Empty":      len(foods) == 0,
 	}), 0)
 }
 
@@ -115,7 +114,6 @@ func (h *FoodsHandler) Show(w http.ResponseWriter, r *http.Request) {
 		"Grams":       grams,
 		"PrevGrams":   clampGrams(grams - portionStepGrams),
 		"NextGrams":   clampGrams(grams + portionStepGrams),
-		"GramsLabel":  formatGrams(grams),
 		"Portion":     portion,
 		"KcalLabel":   formatNumber(portion.Kcal),
 		"Share":       nutrition.MacroShare(portion),
@@ -124,7 +122,6 @@ func (h *FoodsHandler) Show(w http.ResponseWriter, r *http.Request) {
 		"Meals":       mealOptions(h, r),
 		"Presets":     nutrition.ServingPresets(),
 		"DayISO":      day.Format("2006-01-02"),
-		"AddURL":      "/diario/entradas?" + dayQuery(day),
 		"DetailURL":   "/alimento/" + itoa(food.ID),
 		"KcalPerGram": kcalPerGram(food),
 	}), 0)
