@@ -38,10 +38,11 @@ func (h *HomeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Layout: "app",
 		Name:   "home",
 		Data: amarraData(r, h.site, map[string]any{
-			"Title":     h.t(r, "home.title"),
-			"ActiveNav": "home",
-			"Profile":   nutrition.Profile{},
-			"Errors":    map[string]string{},
+			"Title":      h.t(r, "home.title"),
+			"ActiveNav":  "home",
+			"Profile":    nutrition.Profile{},
+			"Errors":     map[string]string{},
+			"Directions": calculatorDirections(),
 		}),
 	}, h.cfg)
 }

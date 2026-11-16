@@ -146,7 +146,7 @@ func TestHomeHandler_offersCalorieCalculator(t *testing.T) {
 	if !strings.Contains(body, `action="/calculadora"`) {
 		t.Error("landing page must post the calorie calculator to /calculadora")
 	}
-	for _, want := range []string{`name="weight_kg"`, `name="height_cm"`, `name="age_years"`, `name="sex"`} {
+	for _, want := range []string{`name="weight_kg"`, `name="height_cm"`, `name="age_years"`, `name="sex"`, `name="direction"`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("landing calculator missing %q", want)
 		}

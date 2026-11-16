@@ -35,6 +35,20 @@
         {{ with index .Errors "weight_kg" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
       </div>
     </div>
+
+    <div class="flex flex-col gap-1.5">
+      <span class="text-label-lg font-semibold text-on-surface">{{ t "calc.direction" }}</span>
+      <div class="grid grid-cols-3 gap-2">
+        {{ $direction := printf "%s" .Profile.Goal }}
+        {{ range .Directions }}
+        <label class="flex items-center justify-center px-2 py-2.5 rounded-xl cursor-pointer text-label-lg font-semibold text-center {{ if eq .Value $direction }}bg-primary text-on-primary{{ else }}bg-surface-container-low text-on-surface-variant{{ end }}">
+          <input type="radio" name="direction" value="{{ .Value }}" class="sr-only" {{ if eq .Value $direction }}checked{{ end }} required />
+          {{ t .LabelKey }}
+        </label>
+        {{ end }}
+      </div>
+      {{ with index .Errors "direction" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+    </div>
   </section>
 
   <button type="submit" class="inline-flex items-center justify-center w-full min-h-[52px] rounded-full bg-primary text-on-primary text-label-lg font-bold vitalis-fab-shadow active:scale-[0.98] transition-transform">{{ t "calc.submit" }}</button>

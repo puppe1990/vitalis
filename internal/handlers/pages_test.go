@@ -198,7 +198,7 @@ func newPageHandlers(t *testing.T, env testEnv, locale string) pageHandlers {
 		foods:    NewFoodsHandler(views, env.store, testSite(), catalog, cfg),
 		progress: NewProgressHandler(views, env.store, testSite(), catalog, cfg),
 		goals:    NewGoalsHandler(views, env.store, testSite(), catalog, cfg),
-		calc:     NewCalculatorHandler(views, testSite(), catalog, cfg),
+		calc:     NewCalculatorHandler(views, env.store, testSite(), catalog, cfg),
 		tokens:   NewAPITokensPage(views, env.store, testSite(), catalog, cfg),
 	}
 }

@@ -28,4 +28,7 @@ func TestApp_servesCalorieCalculator(t *testing.T) {
 	if !strings.Contains(body, `name="sex"`) {
 		t.Error("calculator is missing the sex field")
 	}
+	if !strings.Contains(body, `name="direction"`) {
+		t.Error("calculator is missing secar / manter / aumentar")
+	}
 }

@@ -18,14 +18,18 @@
 
   {{ if .HasResult }}
   <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-sm" data-testid="calc-result">
+    <div class="flex flex-col p-4 rounded-xl bg-primary text-on-primary">
+      <span class="text-label-sm opacity-80">{{ t "calc.goal" }} · {{ t .GoalLabelKey }}</span>
+      <span class="text-headline-md font-extrabold tabular">{{ .TargetLabel }} kcal</span>
+    </div>
     <div class="grid grid-cols-2 gap-2">
       <div class="flex flex-col p-3 rounded-xl bg-surface-container-low">
         <span class="text-label-sm text-on-surface-variant">{{ t "calc.bmr" }}</span>
         <span class="text-headline-sm font-extrabold text-on-surface tabular">{{ .BMRLabel }} kcal</span>
       </div>
-      <div class="flex flex-col p-3 rounded-xl bg-primary text-on-primary">
-        <span class="text-label-sm opacity-80">{{ t "calc.maintain" }}</span>
-        <span class="text-headline-sm font-extrabold tabular">{{ .TargetLabel }} kcal</span>
+      <div class="flex flex-col p-3 rounded-xl bg-surface-container-low">
+        <span class="text-label-sm text-on-surface-variant">{{ t "diario.hydration" }}</span>
+        <span class="text-headline-sm font-extrabold text-on-surface tabular">{{ .WaterLabel }}</span>
       </div>
     </div>
     <div class="grid grid-cols-3 gap-2">
@@ -42,20 +46,7 @@
         <span class="text-label-lg font-bold text-on-surface tabular">{{ .FatLabel }} g</span>
       </div>
     </div>
-    <p class="text-body-sm text-on-surface-variant">{{ t "goals.water" .WaterLabel }}</p>
     <p class="text-body-sm text-on-surface-variant">{{ t "calc.formula" }}</p>
-
-    <div class="flex flex-col gap-1.5 pt-1">
-      <span class="text-label-lg font-semibold text-on-surface">{{ t "calc.bands" }}</span>
-      <div class="grid grid-cols-2 gap-2">
-        {{ range .Bands }}
-        <div class="flex flex-col p-3 rounded-xl {{ if .Highlight }}bg-secondary-container/60 text-on-secondary-container{{ else }}bg-surface-container-low{{ end }}">
-          <span class="text-label-sm {{ if .Highlight }}opacity-80{{ else }}text-on-surface-variant{{ end }}">{{ t .LabelKey }}</span>
-          <span class="text-label-lg font-bold tabular text-on-surface">{{ .KcalLabel }} kcal</span>
-        </div>
-        {{ end }}
-      </div>
-    </div>
   </section>
   {{ end }}
 
@@ -63,7 +54,7 @@
 
   {{ if .HasResult }}
     {{ if .Site.LoggedIn }}
-    <a href="/metas" class="inline-flex items-center justify-center w-full min-h-[52px] rounded-full bg-surface-container text-primary text-label-lg font-bold">{{ t "calc.cta_save" }}</a>
+    <a href="/diario" class="inline-flex items-center justify-center w-full min-h-[52px] rounded-full bg-surface-container text-primary text-label-lg font-bold">{{ t "calc.cta_diary" }}</a>
     {{ else }}
     <a href="/signup" class="inline-flex items-center justify-center w-full min-h-[52px] rounded-full bg-surface-container text-primary text-label-lg font-bold">{{ t "calc.cta_signup" }}</a>
     {{ end }}
