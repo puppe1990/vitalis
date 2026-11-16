@@ -79,6 +79,9 @@
 {{- define "icon_camera" -}}
 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8h3l1.5-2h7L17 8h3v11H4V8z"/><circle cx="12" cy="13.5" r="3.5"/></svg>
 {{- end -}}
+{{- define "icon_settings" -}}
+<svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 01-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.2a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 01-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.2a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 012.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.2a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 012.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9c.3.7 1 1.2 1.8 1.2H21a2 2 0 010 4h-.2a1.7 1.7 0 00-1.4 1z"/></svg>
+{{- end -}}
 {{ define "app" }}
 <!doctype html>
 <html lang="{{ htmlLang }}">
@@ -131,11 +134,14 @@
         {{ template "content" . }}
       </div>
       <nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-ink/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(15,23,42,0.06)]" amarra-hook="nav" data-amarra-nav-on="text-primary font-bold" data-amarra-nav-off="text-on-surface-variant">
-        <div class="mx-auto max-w-lg flex justify-around items-center h-16 px-space-xs">
+        <div class="mx-auto max-w-lg flex items-center h-16 px-space-xs">
           <a href="/diario" class="flex flex-col items-center justify-center gap-0.5 flex-1 h-full min-w-[44px] min-h-[44px] text-label-sm {{ if eq .ActiveNav "diario" }}text-primary font-bold{{ else }}text-on-surface-variant{{ end }}">{{ template "icon_diario" . }}<span>{{ t "nav.diario" }}</span></a>
           <a href="/alimentos" class="flex flex-col items-center justify-center gap-0.5 flex-1 h-full min-w-[44px] min-h-[44px] text-label-sm {{ if eq .ActiveNav "alimentos" }}text-primary font-bold{{ else }}text-on-surface-variant{{ end }}">{{ template "icon_alimentos" . }}<span>{{ t "nav.alimentos" }}</span></a>
-          <a href="/alimentos" class="-mt-6 flex items-center justify-center w-16 h-16 rounded-full bg-primary text-on-primary vitalis-fab-shadow active:scale-95 transition-transform" aria-label="{{ t "nav.registrar" }}">{{ template "icon_registrar" . }}</a>
+          <div class="flex-1 flex items-center justify-center">
+            <a href="/alimentos" class="-mt-6 flex items-center justify-center w-16 h-16 rounded-full bg-primary text-on-primary vitalis-fab-shadow active:scale-95 transition-transform" aria-label="{{ t "nav.registrar" }}">{{ template "icon_registrar" . }}</a>
+          </div>
           <a href="/progresso" class="flex flex-col items-center justify-center gap-0.5 flex-1 h-full min-w-[44px] min-h-[44px] text-label-sm {{ if eq .ActiveNav "progresso" }}text-primary font-bold{{ else }}text-on-surface-variant{{ end }}">{{ template "icon_progresso" . }}<span>{{ t "nav.progresso" }}</span></a>
+          <a href="/settings" class="flex flex-col items-center justify-center gap-0.5 flex-1 h-full min-w-[44px] min-h-[44px] text-label-sm {{ if eq .ActiveNav "settings" }}text-primary font-bold{{ else }}text-on-surface-variant{{ end }}">{{ template "icon_settings" . }}<span>{{ t "nav.settings" }}</span></a>
           <!-- cais:nav -->
         </div>
       </nav>

@@ -55,6 +55,7 @@ var ptMessages = map[string]string{
 	"nav.alimentos": "Alimentos",
 	"nav.registrar": "Registrar",
 	"nav.progresso": "Progresso",
+	"nav.settings":  "Ajustes",
 
 	"diario.title":                   "Diário",
 	"diario.today":                   "Hoje, %s",
