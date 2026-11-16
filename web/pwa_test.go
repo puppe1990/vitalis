@@ -92,3 +92,43 @@ func TestManifest_isVitalisNotCaisScaffold(t *testing.T) {
 		t.Errorf("description still mentions Cais: %q", m.Description)
 	}
 }
+
+func TestOGPreview_isVitalisCard(t *testing.T) {
+	f, err := os.Open("static/og.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = f.Close() }()
+	img, err := png.Decode(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b := img.Bounds()
+	if b.Dx() != 1200 || b.Dy() != 630 {
+		t.Fatalf("size = %dx%d, want 1200x630", b.Dx(), b.Dy())
+	}
+	got := color.RGBAModel.Convert(img.At(b.Min.X, b.Min.Y)).(color.RGBA)
+	if got != vitalisGreen {
+		t.Errorf("corner pixel = %v, want Vitalis green %v", got, vitalisGreen)
+	}
+	// Local drop coords (16, 20) sit in the white lobe, left of the green stem.
+	drop := color.RGBAModel.Convert(img.At(558, 239)).(color.RGBA)
+	if drop != (color.RGBA{R: 255, G: 255, B: 255, A: 255}) {
+		t.Errorf("drop pixel = %v, want white", drop)
+	}
+
+	svg, err := os.ReadFile("static/og.svg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	body := string(svg)
+	if !strings.Contains(body, "Vitalis") {
+		t.Error("og.svg is missing the Vitalis wordmark")
+	}
+	if !strings.Contains(body, "c-4 4.5-7 8.5-7 12.5") {
+		t.Error("og.svg is missing the droplet path")
+	}
+	if !strings.Contains(body, "#006947") {
+		t.Error("og.svg is not painted in Vitalis green")
+	}
+}
