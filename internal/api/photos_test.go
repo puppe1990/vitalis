@@ -64,6 +64,36 @@ func TestHandler_uploadAndFetchPhoto(t *testing.T) {
 	}
 }
 
+func TestHandler_uploadTwoPhotos(t *testing.T) {
+	h, token, _, _ := newTestAPIWithPhotos(t)
+
+	rr := doMultipartFiles(t, h, "/api/v1/photos?d=2026-11-16", token, "almoco", []struct {
+		body     []byte
+		filename string
+	}{
+		{jpegAPIBody(), "prato1.jpg"},
+		{jpegAPIBody(), "prato2.jpg"},
+	})
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("upload status = %d, body = %s", rr.Code, rr.Body.String())
+	}
+	var created struct {
+		Photos []struct {
+			ID   int64  `json:"id"`
+			Meal string `json:"meal"`
+		} `json:"photos"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &created); err != nil {
+		t.Fatal(err)
+	}
+	if len(created.Photos) != 2 {
+		t.Fatalf("photos = %d, want 2; body = %s", len(created.Photos), rr.Body.String())
+	}
+	if created.Photos[0].Meal != "almoco" || created.Photos[1].Meal != "almoco" {
+		t.Errorf("photos = %+v", created.Photos)
+	}
+}
+
 func TestHandler_uploadPhotoRequiresStorage(t *testing.T) {
 	h, token, _, _ := newTestAPI(t)
 	rr := doMultipart(t, h, "/api/v1/photos", token, "almoco", jpegAPIBody(), "prato.jpg")
@@ -97,17 +127,30 @@ func TestHandler_deletePhoto(t *testing.T) {
 
 func doMultipart(t *testing.T, h http.Handler, path, token, meal string, body []byte, filename string) *httptest.ResponseRecorder {
 	t.Helper()
+	return doMultipartFiles(t, h, path, token, meal, []struct {
+		body     []byte
+		filename string
+	}{{body, filename}})
+}
+
+func doMultipartFiles(t *testing.T, h http.Handler, path, token, meal string, files []struct {
+	body     []byte
+	filename string
+}) *httptest.ResponseRecorder {
+	t.Helper()
 	var buf bytes.Buffer
 	mw := multipart.NewWriter(&buf)
 	if err := mw.WriteField("meal", meal); err != nil {
 		t.Fatal(err)
 	}
-	part, err := mw.CreateFormFile("photo", filename)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := io.Copy(part, bytes.NewReader(body)); err != nil {
-		t.Fatal(err)
+	for _, f := range files {
+		part, err := mw.CreateFormFile("photo", f.filename)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := io.Copy(part, bytes.NewReader(f.body)); err != nil {
+			t.Fatal(err)
+		}
 	}
 	if err := mw.Close(); err != nil {
 		t.Fatal(err)

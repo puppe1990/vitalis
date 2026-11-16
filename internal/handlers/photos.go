@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"io"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/puppe1990/amarra-cais/pkg/cais"
@@ -38,39 +39,60 @@ func (h *PhotosHandler) UploadPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.Body = http.MaxBytesReader(w, r.Body, photos.MaxBytes+1<<20)
-	if err := r.ParseMultipartForm(photos.MaxBytes); err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, photos.MaxRequestBytes())
+	if err := r.ParseMultipartForm(photos.MaxRequestBytes()); err != nil {
 		flash.Set(w, "notice", h.t(r, "diario.photo_too_large"), h.cfg.CookieSecure())
 		http.Redirect(w, r, back, http.StatusSeeOther)
 		return
 	}
 
-	file, _, err := r.FormFile("photo")
-	if err != nil {
+	var headers []*multipart.FileHeader
+	if r.MultipartForm != nil {
+		headers = r.MultipartForm.File["photo"]
+	}
+	if len(headers) == 0 {
 		flash.Set(w, "notice", h.t(r, "diario.photo_invalid"), h.cfg.CookieSecure())
 		http.Redirect(w, r, back, http.StatusSeeOther)
 		return
 	}
-	defer func() { _ = file.Close() }()
-
-	body, err := io.ReadAll(io.LimitReader(file, photos.MaxBytes+1))
+	bodies, err := photos.ReadFileHeaders(headers)
 	if err != nil {
 		httpxServerError(w, r, err, h.cfg)
 		return
 	}
 
-	_, err = h.lib.Save(r.Context(), photos.SaveInput{
-		UserID:   currentUserID(r),
-		Meal:     nutrition.NormalizeMeal(r.FormValue("meal")),
-		LoggedOn: day,
-		Body:     body,
-	})
-	if err != nil {
-		flash.Set(w, "notice", h.photoError(r, err), h.cfg.CookieSecure())
+	meal := nutrition.NormalizeMeal(r.FormValue("meal"))
+	saved := 0
+	var firstErr error
+	for _, body := range bodies {
+		_, err := h.lib.Save(r.Context(), photos.SaveInput{
+			UserID:   currentUserID(r),
+			Meal:     meal,
+			LoggedOn: day,
+			Body:     body,
+		})
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		saved++
+	}
+	if saved == 0 {
+		msg := h.t(r, "diario.photo_invalid")
+		if firstErr != nil {
+			msg = h.photoError(r, firstErr)
+		}
+		flash.Set(w, "notice", msg, h.cfg.CookieSecure())
 		http.Redirect(w, r, back, http.StatusSeeOther)
 		return
 	}
-	flash.Set(w, "notice", h.t(r, "diario.photo_added"), h.cfg.CookieSecure())
+	notice := h.t(r, "diario.photo_added")
+	if saved > 1 {
+		notice = h.t(r, "diario.photos_added", saved)
+	}
+	flash.Set(w, "notice", notice, h.cfg.CookieSecure())
 	http.Redirect(w, r, back, http.StatusSeeOther)
 }
 

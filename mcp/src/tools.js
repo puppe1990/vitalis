@@ -197,19 +197,26 @@ export function createTools(client) {
     tool({
       name: "log_photo",
       description:
-        "Salve a foto de um prato no diário (JPEG, PNG, WebP ou HEIC, até 8 MB) no Backblaze B2. Passe o caminho local do arquivo. Use depois de fotografar a refeição.",
+        "Salve uma ou mais fotos de um prato no diário (JPEG, PNG, WebP ou HEIC, até 8 MB cada) no Backblaze B2. Passe o caminho local, ou uma lista de caminhos. Use depois de fotografar a refeição.",
       schema: z.object({
         path: z
-          .string()
-          .min(1, "path é obrigatório")
-          .describe("Caminho local da foto no computador."),
+          .union([
+            z.string().min(1, "path é obrigatório"),
+            z.array(z.string().min(1)).min(1, "path é obrigatório"),
+          ])
+          .describe("Caminho local da foto, ou uma lista de caminhos."),
         meal: mealSchema,
         date: dateSchema,
       }),
       async run({ path, meal, date }) {
         const payload = await client.logPhoto({ path, meal, date });
-        const photo = payload.photo ?? {};
-        return result(`Foto salva no ${MEAL_LABELS[meal] || meal} (id ${photo.id}).`, payload);
+        const photos = payload.photos ?? (payload.photo ? [payload.photo] : []);
+        const ids = photos.map((p) => p.id).filter(Boolean);
+        const label = MEAL_LABELS[meal] || meal;
+        if (ids.length > 1) {
+          return result(`Fotos salvas no ${label} (ids ${ids.join(", ")}).`, payload);
+        }
+        return result(`Foto salva no ${label} (id ${ids[0] ?? payload.photo?.id}).`, payload);
       },
     }),
 

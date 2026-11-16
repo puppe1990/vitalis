@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"time"
 
@@ -41,35 +42,53 @@ func (h *Handler) uploadPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.Body = http.MaxBytesReader(w, r.Body, photos.MaxBytes+1<<20)
-	if err := r.ParseMultipartForm(photos.MaxBytes); err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, photos.MaxRequestBytes())
+	if err := r.ParseMultipartForm(photos.MaxRequestBytes()); err != nil {
 		writeError(w, http.StatusRequestEntityTooLarge, "image exceeds 8 MB")
 		return
 	}
-	file, _, err := r.FormFile("photo")
-	if err != nil {
+	var headers []*multipart.FileHeader
+	if r.MultipartForm != nil {
+		headers = r.MultipartForm.File["photo"]
+	}
+	if len(headers) == 0 {
 		writeError(w, http.StatusBadRequest, "photo file is required")
 		return
 	}
-	defer func() { _ = file.Close() }()
-
-	body, err := io.ReadAll(io.LimitReader(file, photos.MaxBytes+1))
+	bodies, err := photos.ReadFileHeaders(headers)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	saved, err := h.photos.Save(r.Context(), photos.SaveInput{
-		UserID:   userIDFrom(r),
-		Meal:     nutrition.NormalizeMeal(r.FormValue("meal")),
-		LoggedOn: day,
-		Body:     body,
-	})
-	if err != nil {
-		writePhotoError(w, err)
+	meal := nutrition.NormalizeMeal(r.FormValue("meal"))
+	saved := make([]photoJSON, 0, len(bodies))
+	var firstErr error
+	for _, body := range bodies {
+		photo, err := h.photos.Save(r.Context(), photos.SaveInput{
+			UserID:   userIDFrom(r),
+			Meal:     meal,
+			LoggedOn: day,
+			Body:     body,
+		})
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		saved = append(saved, toPhotoJSON(photo))
+	}
+	if len(saved) == 0 {
+		if firstErr != nil {
+			writePhotoError(w, firstErr)
+			return
+		}
+		writeError(w, http.StatusBadRequest, "photo file is required")
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]any{"photo": toPhotoJSON(saved)})
+	payload := map[string]any{"photos": saved, "photo": saved[0]}
+	writeJSON(w, http.StatusCreated, payload)
 }
 
 func (h *Handler) getPhoto(w http.ResponseWriter, r *http.Request) {

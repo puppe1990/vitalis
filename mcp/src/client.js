@@ -103,18 +103,28 @@ export class VitalisClient {
     });
   }
 
-  async logPhoto({ path, meal, date, filename, body }) {
-    let bytes = body;
-    let name = filename;
-    if (bytes === undefined) {
-      if (!path) throw new Error("logPhoto requires path or body");
-      const fs = await import("node:fs/promises");
-      bytes = await fs.readFile(path);
-      name = name || path.split(/[/\\]/).pop();
-    }
+  async logPhoto({ path, meal, date, filename, body, files }) {
     const form = new FormData();
     form.set("meal", meal);
-    form.set("photo", new Blob([bytes]), name || "photo.jpg");
+
+    const parts = files ? files.slice() : [];
+    if (parts.length === 0 && body !== undefined) {
+      parts.push({ filename: filename || "photo.jpg", body });
+    }
+    if (parts.length === 0) {
+      const paths = Array.isArray(path) ? path : path ? [path] : [];
+      if (paths.length === 0) throw new Error("logPhoto requires path or body");
+      const fs = await import("node:fs/promises");
+      for (const filePath of paths) {
+        parts.push({
+          filename: filePath.split(/[/\\]/).pop(),
+          body: await fs.readFile(filePath),
+        });
+      }
+    }
+    for (const part of parts) {
+      form.append("photo", new Blob([part.body]), part.filename || "photo.jpg");
+    }
     return this.request("POST", "/photos", { query: { d: date }, form });
   }
 
