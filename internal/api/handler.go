@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/puppe1990/vitalis/internal/models"
+	"github.com/puppe1990/vitalis/internal/nutrition"
 	"github.com/puppe1990/vitalis/internal/store"
 )
 
@@ -167,22 +168,29 @@ func round1(v float64) float64 {
 
 // goalJSON is the budget plus what it was derived from.
 type goalJSON struct {
-	TargetKcal float64 `json:"target_kcal"`
-	ProteinG   float64 `json:"protein_g"`
-	CarbG      float64 `json:"carb_g"`
-	FatG       float64 `json:"fat_g"`
-	WaterML    float64 `json:"water_ml"`
-	Sex        string  `json:"sex"`
-	AgeYears   int     `json:"age_years"`
-	HeightCM   float64 `json:"height_cm"`
-	WeightKG   float64 `json:"weight_kg"`
-	Activity   string  `json:"activity"`
-	Direction  string  `json:"direction"`
+	// TargetSource is "manual" when the user pinned the target, "calculated"
+	// when it came from the profile formula. target_override carries the pinned
+	// number so a client can show or clear it.
+	TargetSource   string  `json:"target_source"`
+	TargetOverride float64 `json:"target_override"`
+	TargetKcal     float64 `json:"target_kcal"`
+	ProteinG       float64 `json:"protein_g"`
+	CarbG          float64 `json:"carb_g"`
+	FatG           float64 `json:"fat_g"`
+	WaterML        float64 `json:"water_ml"`
+	Sex            string  `json:"sex"`
+	AgeYears       int     `json:"age_years"`
+	HeightCM       float64 `json:"height_cm"`
+	WeightKG       float64 `json:"weight_kg"`
+	Activity       string  `json:"activity"`
+	Direction      string  `json:"direction"`
 }
 
 func toGoalJSON(g models.Goal) goalJSON {
 	return goalJSON{
-		TargetKcal: g.TargetKcal, ProteinG: g.ProteinG, CarbG: g.CarbG, FatG: g.FatG,
+		TargetSource:   nutrition.TargetSource(g.TargetOverride),
+		TargetOverride: g.TargetOverride,
+		TargetKcal:     g.TargetKcal, ProteinG: g.ProteinG, CarbG: g.CarbG, FatG: g.FatG,
 		WaterML: g.WaterML, Sex: string(g.Sex), AgeYears: g.AgeYears,
 		HeightCM: g.HeightCM, WeightKG: g.WeightKG,
 		Activity: string(g.Activity), Direction: string(g.Direction),

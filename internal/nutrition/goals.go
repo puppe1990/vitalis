@@ -176,3 +176,55 @@ func withActivity(p Profile, a Activity) Profile {
 	p.Activity = a
 	return p
 }
+
+// MinManualTargetKcal and MaxManualTargetKcal bound a hand-pinned target. The
+// floor matches the calculated path; the ceiling only catches typos (25.000
+// instead of 2.500), it is not a nutritional judgement.
+const (
+	MinManualTargetKcal = MinTargetKcal
+	MaxManualTargetKcal = 6000
+)
+
+// GoalsFromTarget builds a budget from an explicit calorie target.
+//
+// A user who already knows their number must not have to reverse-engineer a
+// profile that happens to produce it. Macros are split with the same ratio the
+// calculated path uses, so the bars and the MCP reply stay consistent.
+func GoalsFromTarget(target float64, direction Goal, waterML float64) Goals {
+	if target < MinManualTargetKcal {
+		target = MinManualTargetKcal
+	}
+	if target > MaxManualTargetKcal {
+		target = MaxManualTargetKcal
+	}
+
+	split, ok := goalMacroSplit[direction]
+	if !ok {
+		split = goalMacroSplit[GoalMaintain]
+	}
+	if waterML <= 0 {
+		waterML = 2500
+	}
+
+	return Goals{
+		TargetKcal: math.Round(target),
+		ProteinG:   math.Round(target * split.Protein / 100 / KcalPerProteinGram),
+		CarbG:      math.Round(target * split.Carb / 100 / KcalPerCarbGram),
+		FatG:       math.Round(target * split.Fat / 100 / KcalPerFatGram),
+		WaterML:    math.Round(waterML),
+	}
+}
+
+// TargetSource reports where a budget came from, for the UI badge and the API.
+const (
+	TargetSourceCalculated = "calculated"
+	TargetSourceManual     = "manual"
+)
+
+// TargetSource classifies a goal by whether the user pinned the number.
+func TargetSource(override float64) string {
+	if override > 0 {
+		return TargetSourceManual
+	}
+	return TargetSourceCalculated
+}

@@ -110,3 +110,47 @@ func TestGoal_ValidMatchesTheSplitTable(t *testing.T) {
 		}
 	}
 }
+
+// A pinned target must produce macros that reconcile with the calories, using
+// the same split the calculated path uses — otherwise the bars and the number
+// on the hero card disagree.
+func TestGoalsFromTarget_macrosReconcile(t *testing.T) {
+	got := GoalsFromTarget(2500, GoalMaintain, 3000)
+
+	if got.TargetKcal != 2500 {
+		t.Errorf("TargetKcal = %v, want 2500", got.TargetKcal)
+	}
+	sum := got.ProteinG*KcalPerProteinGram + got.CarbG*KcalPerCarbGram + got.FatG*KcalPerFatGram
+	if diff := sum - 2500; diff > 2500*0.02 || diff < -2500*0.02 {
+		t.Errorf("macro kcal %.1f drifts from target 2500", sum)
+	}
+	if got.WaterML != 3000 {
+		t.Errorf("WaterML = %v, want 3000 (kept from the profile)", got.WaterML)
+	}
+}
+
+func TestGoalsFromTarget_clampsAbsurdValues(t *testing.T) {
+	if got := GoalsFromTarget(300, GoalLose, 2500); got.TargetKcal != MinManualTargetKcal {
+		t.Errorf("low target = %v, want floor %v", got.TargetKcal, MinManualTargetKcal)
+	}
+	if got := GoalsFromTarget(25000, GoalLose, 2500); got.TargetKcal != MaxManualTargetKcal {
+		t.Errorf("high target = %v, want ceiling %v", got.TargetKcal, MaxManualTargetKcal)
+	}
+}
+
+func TestGoalsFromTarget_unknownDirectionFallsBackToMaintain(t *testing.T) {
+	got := GoalsFromTarget(2500, Goal("bulk"), 2500)
+	want := GoalsFromTarget(2500, GoalMaintain, 2500)
+	if got.ProteinG != want.ProteinG {
+		t.Errorf("unknown direction used a different split: %v vs %v", got.ProteinG, want.ProteinG)
+	}
+}
+
+func TestTargetSource_labelsThePinnedTarget(t *testing.T) {
+	if got := TargetSource(2500); got != TargetSourceManual {
+		t.Errorf("TargetSource(2500) = %q", got)
+	}
+	if got := TargetSource(0); got != TargetSourceCalculated {
+		t.Errorf("TargetSource(0) = %q", got)
+	}
+}

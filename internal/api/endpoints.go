@@ -380,6 +380,9 @@ type saveGoalRequest struct {
 	WeightKG  float64 `json:"weight_kg"`
 	Activity  string  `json:"activity"`
 	Direction string  `json:"direction"`
+	// TargetKcal pins the daily target instead of deriving it from the profile.
+	// Omit it (or send 0) to keep the calculated budget.
+	TargetKcal float64 `json:"target_kcal"`
 }
 
 func (h *Handler) saveGoal(w http.ResponseWriter, r *http.Request) {
@@ -396,16 +399,21 @@ func (h *Handler) saveGoal(w http.ResponseWriter, r *http.Request) {
 		Activity: nutrition.Activity(req.Activity),
 		Goal:     nutrition.Goal(req.Direction),
 	}
-	if err := validateProfile(profile); err != nil {
+	if err := validateProfileWithTarget(profile, req.TargetKcal); err != nil {
 		writeError(w, http.StatusUnprocessableEntity, err.Error())
 		return
 	}
 
 	goals := nutrition.GoalsFor(profile)
+	if req.TargetKcal > 0 {
+		goals = nutrition.GoalsFromTarget(req.TargetKcal, profile.Goal, goals.WaterML)
+	}
+
 	userID := userIDFrom(r)
 	goal := models.Goal{
 		UserID: userID, TargetKcal: goals.TargetKcal,
-		ProteinG: goals.ProteinG, CarbG: goals.CarbG, FatG: goals.FatG,
+		TargetOverride: req.TargetKcal,
+		ProteinG:       goals.ProteinG, CarbG: goals.CarbG, FatG: goals.FatG,
 		WaterML: goals.WaterML, Sex: profile.Sex, AgeYears: profile.AgeYears,
 		HeightCM: profile.HeightCM, WeightKG: profile.WeightKG,
 		Activity: profile.Activity, Direction: profile.Goal,

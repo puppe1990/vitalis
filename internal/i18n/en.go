@@ -214,4 +214,7 @@ var enMessages = map[string]string{
 	"settings.account_short":        "Password and sign out",
 	"settings.api_short":            "Token for the MCP server",
 	"progresso.empty_week":          "No meals logged this week.",
+	"goals.manual_target":           "Pinned target (kcal)",
+	"goals.manual_hint":             "Leave blank to calculate from the formula. A number here wins.",
+	"goals.manual_badge":            "Target set by you",
 }

@@ -415,3 +415,92 @@ func TestHandler_rejectsAnotherUsersEntry(t *testing.T) {
 		t.Errorf("status = %d, want 404 for another user's entry", rr.Code)
 	}
 }
+
+// A client that knows its target must be able to pin it; the API recomputes
+// macros from the pinned number and reports where the target came from.
+func TestHandler_goalAcceptsPinnedTarget(t *testing.T) {
+	h, token, _, _ := newTestAPI(t)
+
+	body := map[string]any{
+		"sex": "male", "age_years": 34, "height_cm": 180,
+		"weight_kg": 93.2, "activity": "moderate", "direction": "lose",
+		"target_kcal": 2500,
+	}
+	rr := doJSON(t, h, http.MethodPost, "/api/v1/goal", token, body)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", rr.Code, rr.Body.String())
+	}
+
+	var got struct {
+		Goal struct {
+			TargetKcal     float64 `json:"target_kcal"`
+			TargetOverride float64 `json:"target_override"`
+			TargetSource   string  `json:"target_source"`
+			ProteinG       float64 `json:"protein_g"`
+		} `json:"goal"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Goal.TargetKcal != 2500 {
+		t.Errorf("target_kcal = %v, want the pinned 2500", got.Goal.TargetKcal)
+	}
+	if got.Goal.TargetOverride != 2500 {
+		t.Errorf("target_override = %v, want 2500", got.Goal.TargetOverride)
+	}
+	if got.Goal.TargetSource != "manual" {
+		t.Errorf("target_source = %q, want manual", got.Goal.TargetSource)
+	}
+	if got.Goal.ProteinG <= 0 {
+		t.Error("macros were not split from the pinned target")
+	}
+
+	read := doJSON(t, h, http.MethodGet, "/api/v1/goal", token, nil)
+	var reread struct {
+		Goal struct {
+			TargetKcal float64 `json:"target_kcal"`
+		} `json:"goal"`
+	}
+	if err := json.Unmarshal(read.Body.Bytes(), &reread); err != nil {
+		t.Fatal(err)
+	}
+	if reread.Goal.TargetKcal != 2500 {
+		t.Errorf("read back %v, want 2500", reread.Goal.TargetKcal)
+	}
+}
+
+func TestHandler_goalRejectsAbsurdPinnedTarget(t *testing.T) {
+	h, token, _, _ := newTestAPI(t)
+
+	body := map[string]any{
+		"sex": "male", "age_years": 34, "height_cm": 180,
+		"weight_kg": 93.2, "activity": "moderate", "direction": "lose",
+		"target_kcal": 25000,
+	}
+	rr := doJSON(t, h, http.MethodPost, "/api/v1/goal", token, body)
+	if rr.Code != http.StatusUnprocessableEntity {
+		t.Errorf("status = %d, want 422", rr.Code)
+	}
+}
+
+// Without a pinned target the budget must stay calculated.
+func TestHandler_goalWithoutTargetStaysCalculated(t *testing.T) {
+	h, token, _, _ := newTestAPI(t)
+
+	body := map[string]any{
+		"sex": "male", "age_years": 34, "height_cm": 180,
+		"weight_kg": 93.2, "activity": "moderate", "direction": "lose",
+	}
+	rr := doJSON(t, h, http.MethodPost, "/api/v1/goal", token, body)
+	var got struct {
+		Goal struct {
+			TargetSource string `json:"target_source"`
+		} `json:"goal"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Goal.TargetSource != "calculated" {
+		t.Errorf("target_source = %q, want calculated", got.Goal.TargetSource)
+	}
+}

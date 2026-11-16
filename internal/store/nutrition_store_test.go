@@ -504,3 +504,38 @@ func mustEntry(t *testing.T, s Store, userID, foodID int64, day time.Time) int64
 	}
 	return id
 }
+
+// A pinned target must survive the round trip, otherwise the diary silently
+// falls back to the calculated budget after a restart.
+func TestUpsertGoal_keepsTargetOverride(t *testing.T) {
+	s := newTestStore(t)
+	userID := newTestUser(t, s)
+
+	if err := s.UpsertGoal(models.Goal{UserID: userID, TargetKcal: 2500, TargetOverride: 2500, ProteinG: 219}); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := s.GetGoal(userID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.TargetOverride != 2500 {
+		t.Errorf("TargetOverride = %v, want 2500", got.TargetOverride)
+	}
+	if got.TargetKcal != 2500 {
+		t.Errorf("TargetKcal = %v, want 2500", got.TargetKcal)
+	}
+}
+
+func TestGetGoal_defaultsToNoOverride(t *testing.T) {
+	s := newTestStore(t)
+	userID := newTestUser(t, s)
+
+	got, err := s.GetGoal(userID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.TargetOverride != 0 {
+		t.Errorf("TargetOverride = %v, want 0 (calculated)", got.TargetOverride)
+	}
+}

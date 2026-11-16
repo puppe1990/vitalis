@@ -25,7 +25,13 @@ func parsePositive(raw string) (int, error) {
 
 // validateProfile mirrors the browser form's server-side checks. The MCP client
 // hits the same rules so a bad payload cannot create a nonsensical target.
-func validateProfile(p nutrition.Profile) error {
+// validateProfileWithTarget also checks a pinned target, so a client cannot
+// store 25.000 because it typed one zero too many.
+func validateProfileWithTarget(p nutrition.Profile, target float64) error {
+	if target != 0 && (target < nutrition.MinManualTargetKcal || target > nutrition.MaxManualTargetKcal) {
+		return fmt.Errorf("target_kcal %v must be between %v and %v",
+			target, nutrition.MinManualTargetKcal, nutrition.MaxManualTargetKcal)
+	}
 	if p.Sex != nutrition.SexFemale && p.Sex != nutrition.SexMale {
 		return fmt.Errorf("sex %q must be female or male", p.Sex)
 	}

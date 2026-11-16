@@ -41,19 +41,22 @@ type Entry struct {
 // Goal is the user's daily budget. Stored as a row per user (upserted) because
 // every page and the API need exactly one current value.
 type Goal struct {
-	UserID     int64
-	TargetKcal float64
-	ProteinG   float64
-	CarbG      float64
-	FatG       float64
-	WaterML    float64
-	Sex        nutrition.Sex
-	AgeYears   int
-	HeightCM   float64
-	WeightKG   float64
-	Activity   nutrition.Activity
-	Direction  nutrition.Goal
-	UpdatedAt  time.Time
+	UserID int64
+	// TargetOverride is a calorie target the user pinned by hand. 0 means the
+	// target came from the profile formula; a positive value wins over it.
+	TargetOverride float64
+	TargetKcal     float64
+	ProteinG       float64
+	CarbG          float64
+	FatG           float64
+	WaterML        float64
+	Sex            nutrition.Sex
+	AgeYears       int
+	HeightCM       float64
+	WeightKG       float64
+	Activity       nutrition.Activity
+	Direction      nutrition.Goal
+	UpdatedAt      time.Time
 }
 
 // DayLog is the per-day aggregate the dashboard and weekly chart read.

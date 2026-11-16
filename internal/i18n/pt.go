@@ -214,4 +214,7 @@ var ptMessages = map[string]string{
 	"settings.account_short":        "Senha e sair",
 	"settings.api_short":            "Token para o servidor MCP",
 	"progresso.empty_week":          "Nenhuma refeição registrada nesta semana.",
+	"goals.manual_target":           "Meta fixa (kcal)",
+	"goals.manual_hint":             "Deixe em branco para calcular pela fórmula. Preenchendo, esse número manda.",
+	"goals.manual_badge":            "Meta definida por você",
 }

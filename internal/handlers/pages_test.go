@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -312,5 +313,55 @@ func TestProgresso_emptyWeekHasNoPeakRow(t *testing.T) {
 	}
 	if !strings.Contains(body, "Nenhuma refeição registrada nesta semana") {
 		t.Error("empty week has no explanatory copy")
+	}
+}
+
+// The goal form must offer the pinned target, and the saved value must win
+// over the formula when the user posts it.
+func TestGoals_manualTargetWinsOverTheFormula(t *testing.T) {
+	env := newTestEnv(t)
+	h := newPageHandlers(t, env, "pt")
+
+	form := url.Values{
+		"sex":         {"male"},
+		"age_years":   {"34"},
+		"height_cm":   {"180"},
+		"weight_kg":   {"93.2"},
+		"activity":    {"moderate"},
+		"direction":   {"lose"},
+		"target_kcal": {"2500"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/metas", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req = session.WithUserID(req, env.userID)
+	rr := httptest.NewRecorder()
+	h.goals.Save(rr, req)
+
+	if rr.Code != http.StatusSeeOther {
+		t.Fatalf("status = %d, want 303 (body %s)", rr.Code, firstLines(rr.Body.String()))
+	}
+
+	goal, err := env.store.GetGoal(env.userID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if goal.TargetKcal != 2500 {
+		t.Errorf("TargetKcal = %v, want the pinned 2500", goal.TargetKcal)
+	}
+	if goal.TargetOverride != 2500 {
+		t.Errorf("TargetOverride = %v, want 2500", goal.TargetOverride)
+	}
+}
+
+func TestGoals_formRendersTargetField(t *testing.T) {
+	env := newTestEnv(t)
+	h := newPageHandlers(t, env, "pt")
+
+	req := signedIn(t, env, http.MethodGet, "/metas")
+	rr := httptest.NewRecorder()
+	h.goals.Show(rr, req)
+
+	if !strings.Contains(rr.Body.String(), `name="target_kcal"`) {
+		t.Error("goal form has no pinned-target field")
 	}
 }

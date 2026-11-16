@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/puppe1990/amarra-cais/pkg/amarra/view"
@@ -54,12 +55,16 @@ func (h *GoalsHandler) render(w http.ResponseWriter, r *http.Request, goal model
 		"FloorWarned":  goal.TargetKcal <= nutrition.MinTargetKcal,
 		"Activities":   activityOptions(),
 		"Directions":   directionOptions(),
+		// ManualTarget keeps the typed number in the form after a validation
+		// error; TargetSource labels the card as pinned instead of calculated.
+		"ManualTarget": goal.TargetOverride,
+		"TargetSource": nutrition.TargetSource(goal.TargetOverride),
 	}), status)
 }
 
-// Save recomputes the whole budget from the profile rather than trusting a
-// posted target_kcal: the derived number is the product's promise, and letting
-// a form field override it would let the UI and the MCP server disagree.
+// Save recomputes the budget from the profile, unless the user pinned a target.
+// A pinned number is stored as an override and the macros are split from it, so
+// the UI, the API and the MCP server all read one value.
 func (h *GoalsHandler) Save(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "formulário inválido", http.StatusBadRequest)
@@ -75,7 +80,8 @@ func (h *GoalsHandler) Save(w http.ResponseWriter, r *http.Request) {
 		Goal:     nutrition.Goal(r.PostFormValue("direction")),
 	}
 
-	errs := validateProfile(profile)
+	override := parseFloatDefault(r.PostFormValue("target_kcal"), 0)
+	errs := validateProfile(profile, override)
 	if len(errs) > 0 {
 		h.render(w, r, models.Goal{
 			UserID:    currentUserID(r),
@@ -89,21 +95,28 @@ func (h *GoalsHandler) Save(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// A pinned target wins over the formula. An empty field means "derive",
+	// which is what the form sends when the user has not typed a number.
 	goals := nutrition.GoalsFor(profile)
+	if override > 0 {
+		goals = nutrition.GoalsFromTarget(override, profile.Goal, goals.WaterML)
+	}
+
 	userID := currentUserID(r)
 	goal := models.Goal{
-		UserID:     userID,
-		TargetKcal: goals.TargetKcal,
-		ProteinG:   goals.ProteinG,
-		CarbG:      goals.CarbG,
-		FatG:       goals.FatG,
-		WaterML:    goals.WaterML,
-		Sex:        profile.Sex,
-		AgeYears:   profile.AgeYears,
-		HeightCM:   profile.HeightCM,
-		WeightKG:   profile.WeightKG,
-		Activity:   profile.Activity,
-		Direction:  profile.Goal,
+		TargetOverride: override,
+		UserID:         userID,
+		TargetKcal:     goals.TargetKcal,
+		ProteinG:       goals.ProteinG,
+		CarbG:          goals.CarbG,
+		FatG:           goals.FatG,
+		WaterML:        goals.WaterML,
+		Sex:            profile.Sex,
+		AgeYears:       profile.AgeYears,
+		HeightCM:       profile.HeightCM,
+		WeightKG:       profile.WeightKG,
+		Activity:       profile.Activity,
+		Direction:      profile.Goal,
 	}
 	if err := h.store.UpsertGoal(goal); err != nil {
 		httpxServerError(w, r, err, h.cfg)
@@ -123,7 +136,7 @@ func (h *GoalsHandler) Save(w http.ResponseWriter, r *http.Request) {
 
 // validateProfile reports every problem at once so the user fixes the form in
 // one pass instead of submitting four times.
-func validateProfile(p nutrition.Profile) map[string]string {
+func validateProfile(p nutrition.Profile, override float64) map[string]string {
 	errs := map[string]string{}
 	if p.Sex != nutrition.SexFemale && p.Sex != nutrition.SexMale {
 		errs["sex"] = "Informe o sexo biológico."
@@ -144,6 +157,10 @@ func validateProfile(p nutrition.Profile) map[string]string {
 	}
 	if !p.Goal.Valid() {
 		errs["direction"] = "Escolha um objetivo."
+	}
+	if override != 0 && (override < nutrition.MinManualTargetKcal || override > nutrition.MaxManualTargetKcal) {
+		errs["target_kcal"] = fmt.Sprintf("A meta deve ficar entre %d e %d kcal.",
+			int(nutrition.MinManualTargetKcal), int(nutrition.MaxManualTargetKcal))
 	}
 	return errs
 }

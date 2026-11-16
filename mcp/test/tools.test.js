@@ -260,6 +260,59 @@ describe("save_goal", () => {
     assert.match(result.text, /1622|1\.622/);
   });
 
+  it("forwards a pinned target so a known number does not have to be derived", async () => {
+    const client = fakeClient({ saveGoal: () => goal() });
+    const tools = createTools(client);
+
+    await call(tools, "save_goal", {
+      sex: "male",
+      age_years: 34,
+      height_cm: 180,
+      weight_kg: 93.2,
+      activity: "moderate",
+      direction: "lose",
+      target_kcal: 2500,
+    });
+
+    assert.equal(client.calls[0].args.target_kcal, 2500);
+  });
+
+  it("shows the pinned target in the reply", async () => {
+    const tools = createTools(fakeClient({ saveGoal: () => goal({ target_kcal: 2500 }) }));
+
+    const result = await call(tools, "save_goal", {
+      sex: "male",
+      age_years: 34,
+      height_cm: 180,
+      weight_kg: 93.2,
+      activity: "moderate",
+      direction: "lose",
+      target_kcal: 2500,
+    });
+
+    assert.match(result.text, /2\.500|2500/);
+  });
+
+  it("rejects an absurd pinned target before the round trip", async () => {
+    const client = fakeClient();
+    const tools = createTools(client);
+
+    await assert.rejects(
+      () =>
+        call(tools, "save_goal", {
+          sex: "male",
+          age_years: 34,
+          height_cm: 180,
+          weight_kg: 93.2,
+          activity: "moderate",
+          direction: "lose",
+          target_kcal: 25000,
+        }),
+      /target_kcal|6000/
+    );
+    assert.equal(client.calls.length, 0);
+  });
+
   it("rejects an implausible age before the round trip", async () => {
     const client = fakeClient();
     const tools = createTools(client);

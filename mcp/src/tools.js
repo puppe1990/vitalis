@@ -239,7 +239,7 @@ export function createTools(client) {
     tool({
       name: "save_goal",
       description:
-        "Recalcule a meta diária a partir do perfil (sexo, idade, altura, peso, atividade e objetivo). O app usa Mifflin-St Jeor e nunca desce abaixo de 1.200 kcal.",
+        "Defina a meta diária. Sem target_kcal, recalcula pelo perfil (Mifflin-St Jeor, piso de 1.200 kcal). Com target_kcal, fixa o número informado e divide os macros a partir dele.",
       schema: z.object({
         sex: sexSchema.describe("Sexo biológico usado na fórmula."),
         age_years: z
@@ -257,6 +257,12 @@ export function createTools(client) {
           .max(300, "weight_kg deve ser entre 35 e 300"),
         activity: activitySchema,
         direction: directionSchema,
+        target_kcal: z
+          .number()
+          .min(1200, "target_kcal deve ser entre 1200 e 6000")
+          .max(6000, "target_kcal deve ser entre 1200 e 6000")
+          .optional()
+          .describe("Meta diária fixa em kcal. Omita para calcular pela fórmula do perfil."),
       }),
       async run(args) {
         const payload = await client.saveGoal(args);

@@ -156,10 +156,11 @@ func (s *SQLiteStore) UpsertGoal(g models.Goal) error {
 	}
 	_, err := s.db.Exec(`
 		INSERT INTO goals (user_id, target_kcal, protein_g, carb_g, fat_g, water_ml,
-			sex, age_years, height_cm, weight_kg, activity, direction, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+			sex, age_years, height_cm, weight_kg, activity, direction, target_override, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 		ON CONFLICT(user_id) DO UPDATE SET
 			target_kcal = excluded.target_kcal,
+			target_override = excluded.target_override,
 			protein_g = excluded.protein_g,
 			carb_g = excluded.carb_g,
 			fat_g = excluded.fat_g,
@@ -173,7 +174,7 @@ func (s *SQLiteStore) UpsertGoal(g models.Goal) error {
 			updated_at = CURRENT_TIMESTAMP`,
 		g.UserID, g.TargetKcal, g.ProteinG, g.CarbG, g.FatG, g.WaterML,
 		string(g.Sex), g.AgeYears, g.HeightCM, g.WeightKG,
-		string(g.Activity), string(g.Direction),
+		string(g.Activity), string(g.Direction), g.TargetOverride,
 	)
 	if err != nil {
 		return fmt.Errorf("upsert goal for user %d: %w", g.UserID, err)
@@ -186,10 +187,11 @@ func (s *SQLiteStore) GetGoal(userID int64) (models.Goal, error) {
 	var sex, activity, direction string
 	err := s.db.QueryRow(`
 		SELECT user_id, target_kcal, protein_g, carb_g, fat_g, water_ml,
-			sex, age_years, height_cm, weight_kg, activity, direction, updated_at
+			sex, age_years, height_cm, weight_kg, activity, direction, target_override, updated_at
 		FROM goals WHERE user_id = ?`, userID,
 	).Scan(&g.UserID, &g.TargetKcal, &g.ProteinG, &g.CarbG, &g.FatG, &g.WaterML,
-		&sex, &g.AgeYears, &g.HeightCM, &g.WeightKG, &activity, &direction, &g.UpdatedAt)
+		&sex, &g.AgeYears, &g.HeightCM, &g.WeightKG, &activity, &direction,
+		&g.TargetOverride, &g.UpdatedAt)
 
 	// A user who has not opened the goal form yet still needs a dashboard, so a
 	// missing row resolves to derived defaults instead of an error page.
