@@ -8,6 +8,8 @@ import (
 	"github.com/puppe1990/amarra-cais/pkg/cais/i18n"
 	"github.com/puppe1990/amarra-cais/pkg/cais/meta"
 	"github.com/puppe1990/amarra-cais/pkg/cais/session"
+
+	"github.com/puppe1990/vitalis/internal/nutrition"
 )
 
 type HomeHandler struct {
@@ -36,8 +38,11 @@ func (h *HomeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Layout: "app",
 		Name:   "home",
 		Data: amarraData(r, h.site, map[string]any{
-			"Title":     h.t(r, "home.title"),
-			"ActiveNav": "home",
+			"Title":      h.t(r, "home.title"),
+			"ActiveNav":  "home",
+			"Profile":    nutrition.Profile{},
+			"Errors":     map[string]string{},
+			"Directions": calculatorDirections(),
 		}),
 	}, h.cfg)
 }

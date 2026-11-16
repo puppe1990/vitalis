@@ -13,6 +13,7 @@ import (
 
 func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	home := handlers.NewHomeHandler(deps.Views, deps.Site, deps.Catalog, cfg)
+	calc := handlers.NewCalculatorHandler(deps.Views, deps.Store, deps.Site, deps.Catalog, cfg)
 	auth := handlers.NewAuthHandler(deps.Views, deps.Store, deps.Site, deps.Store.Sessions(), cfg, deps.Catalog)
 	diary := handlers.NewDiaryHandler(deps.Views, deps.Store, deps.Site, deps.Catalog, cfg, deps.Photos)
 	mealPhotos := handlers.NewPhotosHandler(deps.Photos, deps.Catalog, cfg)
@@ -31,6 +32,8 @@ func registerRoutes(r *cais.Router, deps Deps, cfg cais.Config) {
 	r.Get("/favicon.ico", pwa.FaviconICO)
 
 	r.Get("/", home.ServeHTTP)
+	r.Get("/calculadora", calc.Show)
+	r.Post("/calculadora", calc.Calculate)
 	r.Get("/login", auth.Login)
 	r.Post("/login", loginLimit.Middleware(http.HandlerFunc(auth.LoginPost)).ServeHTTP)
 	r.Get("/signup", auth.SignUp)

@@ -107,6 +107,7 @@ func renderEveryPage(t *testing.T, env testEnv, locale string) {
 		{"alimento_novo", h.foods.New, "/alimentos/novo", `name="kcal_100g"`},
 		{"progresso", h.progress.ServeHTTP, "/progresso", "weight-fill"},
 		{"metas", h.goals.Show, "/metas", `name="age_years"`},
+		{"calculadora", h.calc.Show, "/calculadora", `name="weight_kg"`},
 		{"api_tokens", h.tokens.Show, "/settings/api", `name="label"`},
 		{"settings", h.auth.Settings, "/settings", `action="/logout"`},
 	}
@@ -182,6 +183,7 @@ type pageHandlers struct {
 	foods    *FoodsHandler
 	progress *ProgressHandler
 	goals    *GoalsHandler
+	calc     *CalculatorHandler
 	tokens   *APITokensPage
 }
 
@@ -196,6 +198,7 @@ func newPageHandlers(t *testing.T, env testEnv, locale string) pageHandlers {
 		foods:    NewFoodsHandler(views, env.store, testSite(), catalog, cfg),
 		progress: NewProgressHandler(views, env.store, testSite(), catalog, cfg),
 		goals:    NewGoalsHandler(views, env.store, testSite(), catalog, cfg),
+		calc:     NewCalculatorHandler(views, env.store, testSite(), catalog, cfg),
 		tokens:   NewAPITokensPage(views, env.store, testSite(), catalog, cfg),
 	}
 }

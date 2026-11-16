@@ -1,0 +1,71 @@
+{{ define "content" }}
+<div class="flex flex-col gap-space-md {{ if not .Site.LoggedIn }}min-h-[calc(100svh-2rem)] mx-auto w-full max-w-lg px-margin-mobile py-space-lg{{ end }}">
+
+  {{ if not .Site.LoggedIn }}
+  <header class="flex items-center justify-between gap-space-sm">
+    <a href="/" class="flex items-center gap-space-sm min-w-0">
+      <span class="text-primary">{{ template "icon_logo" . }}</span>
+      <span class="text-headline-sm font-extrabold text-primary tracking-tight">Vitalis</span>
+    </a>
+    <.locale-toggle current="{{ .Locale }}" />
+  </header>
+  {{ end }}
+
+  <section class="pt-space-xs flex flex-col gap-1">
+    <h1 class="text-headline-md font-extrabold text-on-surface">{{ t "calc.title" }}</h1>
+    <p class="text-body-md text-on-surface-variant">{{ t "calc.body" }}</p>
+  </section>
+
+  {{ if .HasResult }}
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-sm" data-testid="calc-result">
+    <div class="flex flex-col p-4 rounded-xl bg-primary text-on-primary">
+      <span class="text-label-sm opacity-80">{{ t "calc.goal" }} · {{ t .GoalLabelKey }}</span>
+      <span class="text-headline-md font-extrabold tabular">{{ .TargetLabel }} kcal</span>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <div class="flex flex-col p-3 rounded-xl bg-surface-container-low">
+        <span class="text-label-sm text-on-surface-variant">{{ t "calc.bmr" }}</span>
+        <span class="text-headline-sm font-extrabold text-on-surface tabular">{{ .BMRLabel }} kcal</span>
+      </div>
+      <div class="flex flex-col p-3 rounded-xl bg-surface-container-low">
+        <span class="text-label-sm text-on-surface-variant">{{ t "diario.hydration" }}</span>
+        <span class="text-headline-sm font-extrabold text-on-surface tabular">{{ .WaterLabel }}</span>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-2">
+      <div class="flex flex-col p-2.5 rounded-xl bg-protein-soft">
+        <span class="text-label-sm text-protein font-semibold">{{ t "macro.protein" }}</span>
+        <span class="text-label-lg font-bold text-on-surface tabular">{{ .ProteinLabel }} g</span>
+      </div>
+      <div class="flex flex-col p-2.5 rounded-xl bg-carb-soft">
+        <span class="text-label-sm text-carb font-semibold">{{ t "macro.carb" }}</span>
+        <span class="text-label-lg font-bold text-on-surface tabular">{{ .CarbLabel }} g</span>
+      </div>
+      <div class="flex flex-col p-2.5 rounded-xl bg-fat-soft">
+        <span class="text-label-sm text-fat font-semibold">{{ t "macro.fat" }}</span>
+        <span class="text-label-lg font-bold text-on-surface tabular">{{ .FatLabel }} g</span>
+      </div>
+    </div>
+    <p class="text-body-sm text-on-surface-variant">{{ t "calc.formula" }}</p>
+  </section>
+  {{ end }}
+
+  {{ template "calc_form" . }}
+
+  {{ if .HasResult }}
+    {{ if .Site.LoggedIn }}
+    <a href="/diario" class="inline-flex items-center justify-center w-full min-h-[52px] rounded-full bg-surface-container text-primary text-label-lg font-bold">{{ t "calc.cta_diary" }}</a>
+    {{ else }}
+    <a href="/signup" class="inline-flex items-center justify-center w-full min-h-[52px] rounded-full bg-surface-container text-primary text-label-lg font-bold">{{ t "calc.cta_signup" }}</a>
+    {{ end }}
+  {{ else }}
+    {{ if not .Site.LoggedIn }}
+    <p class="text-center text-body-sm text-on-surface-variant">
+      {{ t "auth.login_prompt" }}
+      <a class="text-primary font-semibold" href="/login">{{ t "auth.login_title" }}</a>
+    </p>
+    {{ end }}
+  {{ end }}
+
+</div>
+{{ end }}
