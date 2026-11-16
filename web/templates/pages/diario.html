@@ -117,14 +117,12 @@
     </div>
 
     {{/* One icon per 250 ml glass to the target, capped at 10 so a 4 L target
-         does not turn the card into a wall of cups. Filled slots are what the
-         user already drank. */}}
-    <div class="flex flex-wrap gap-1">
-      {{ $glasses := .Day.Water.Glasses }}
-      {{ $target := .Day.Water.GlassesTarget }}
-      {{ if gt $target 10 }}{{ $target = 10 }}{{ end }}
-      {{ range $i := .Fmt.Sequence $target }}
-      <span class="flex-1 min-w-[2.1rem] flex flex-col items-center justify-center py-1.5 rounded-xl {{ if lt $i $glasses }}bg-secondary-container text-on-secondary-fixed{{ else }}bg-surface-container text-outline-variant{{ end }}">
+         does not turn the card into a wall of cups. The column count is
+         explicit so the row never wraps into an orphan icon. */}}
+    {{ $glasses := .Day.Water.Glasses }}
+    <div class="grid gap-1" style="grid-template-columns: repeat({{ .Day.WaterSlots }}, minmax(0, 1fr))">
+      {{ range $i := .Fmt.Sequence .Day.WaterSlots }}
+      <span class="flex flex-col items-center justify-center py-1.5 rounded-lg {{ if lt $i $glasses }}bg-secondary-container text-on-secondary-fixed{{ else }}bg-surface-container text-outline-variant{{ end }}">
         {{ template "icon_drop" $ }}
         <span class="text-label-sm mt-0.5">{{ if lt $i $glasses }}250{{ else }}+250{{ end }}</span>
       </span>

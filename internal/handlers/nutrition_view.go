@@ -119,6 +119,7 @@ type DayView struct {
 	Water       nutrition.Water
 	Meals       []MealView
 	MealCount   int
+	WaterSlots  int
 	PreviousDay time.Time
 	NextDay     time.Time
 }
@@ -159,6 +160,7 @@ func buildDayView(goal models.Goal, entries []models.Entry, dayLog models.DayLog
 		Balance:     nutrition.Balance(nutrition.BalanceInput{TargetKcal: target.Kcal, ConsumedKcal: total.Kcal, BurnedKcal: dayLog.BurnedKcal}),
 		Macros:      macroViews(total, target, share),
 		Water:       nutrition.Water{TargetML: goal.WaterML, DrunkML: dayLog.WaterML},
+		WaterSlots:  waterSlots(goal.WaterML),
 		Meals:       meals,
 		MealCount:   len(entries),
 		PreviousDay: day.AddDate(0, 0, -1),
@@ -199,6 +201,23 @@ func nutrientsOf(entries []models.Entry) []nutrition.Nutrients {
 	}
 	return out
 }
+
+// waterSlots is the number of glass icons the card draws. It is computed here
+// rather than in the template because the template would emit an invalid
+// `repeat(0, …)` for a goal with no hydration target.
+func waterSlots(targetML float64) int {
+	slots := nutrition.Water{TargetML: targetML}.GlassesTarget()
+	if slots > maxWaterSlots {
+		return maxWaterSlots
+	}
+	if slots < 1 {
+		return 1
+	}
+	return slots
+}
+
+// maxWaterSlots keeps a 4 L goal from turning the card into a wall of cups.
+const maxWaterSlots = 10
 
 // statusKey maps the shared display status to the i18n key of the badge.
 func statusKey(status string, entryCount int, day time.Time, now time.Time) string {

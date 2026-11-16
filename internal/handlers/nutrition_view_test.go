@@ -190,3 +190,20 @@ func TestStatusKey_emptyDayIsNotStarted(t *testing.T) {
 		t.Errorf("empty day status = %q, want not_started", got)
 	}
 }
+
+// The hydration card draws one icon per glass, but a zero target would emit
+// `repeat(0, …)` (invalid CSS) and a 4 L goal would wrap into orphan icons.
+func TestWaterSlots_staysInsideTheCardsRange(t *testing.T) {
+	cases := map[float64]int{
+		0:    1,
+		250:  1,
+		2240: 9,
+		2500: 10,
+		4000: 10,
+	}
+	for targetML, want := range cases {
+		if got := waterSlots(targetML); got != want {
+			t.Errorf("waterSlots(%v) = %d, want %d", targetML, got, want)
+		}
+	}
+}
