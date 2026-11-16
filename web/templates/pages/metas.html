@@ -1,0 +1,119 @@
+{{ define "content" }}
+<div class="flex flex-col gap-space-md">
+
+  <section class="pt-space-xs flex flex-col gap-1">
+    <h2 class="text-headline-md font-extrabold text-on-surface">{{ t "goals.title" }}</h2>
+    <p class="text-body-md text-on-surface-variant">{{ t "goals.derived" .TargetLabel }} · {{ t "goals.water" .WaterLabel }}</p>
+  </section>
+
+  {{/* Current budget: what the calculation produced, shown before the form so
+       the user sees the effect of a change when the page reloads. */}}
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-sm">
+    <div class="grid grid-cols-2 gap-2">
+      <div class="flex flex-col p-3 rounded-xl bg-surface-container-low">
+        <span class="text-label-sm text-on-surface-variant">{{ t "diario.target" }}</span>
+        <span class="text-headline-sm font-extrabold text-on-surface tabular">{{ .TargetLabel }} kcal</span>
+      </div>
+      <div class="flex flex-col p-3 rounded-xl bg-surface-container-low">
+        <span class="text-label-sm text-on-surface-variant">{{ t "diario.hydration" }}</span>
+        <span class="text-headline-sm font-extrabold text-on-surface tabular">{{ .WaterLabel }}</span>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-2">
+      <div class="flex flex-col p-2.5 rounded-xl bg-protein-soft">
+        <span class="text-label-sm text-protein font-semibold">{{ t "macro.protein" }}</span>
+        <span class="text-label-lg font-bold text-on-surface tabular">{{ .ProteinLabel }} g</span>
+      </div>
+      <div class="flex flex-col p-2.5 rounded-xl bg-carb-soft">
+        <span class="text-label-sm text-carb font-semibold">{{ t "macro.carb" }}</span>
+        <span class="text-label-lg font-bold text-on-surface tabular">{{ .CarbLabel }} g</span>
+      </div>
+      <div class="flex flex-col p-2.5 rounded-xl bg-fat-soft">
+        <span class="text-label-sm text-fat font-semibold">{{ t "macro.fat" }}</span>
+        <span class="text-label-lg font-bold text-on-surface tabular">{{ .FatLabel }} g</span>
+      </div>
+    </div>
+    {{ if .FloorWarned }}
+    <p class="text-body-sm text-carb font-semibold">{{ t "goals.floor_warning" }}</p>
+    {{ end }}
+  </section>
+
+  <form method="post" action="/metas" class="flex flex-col gap-space-md">
+    {{ csrfField .CSRFToken }}
+
+    <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-md">
+      <div class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold text-on-surface">{{ t "goals.sex" }}</span>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="flex items-center justify-center px-3 py-2.5 rounded-xl cursor-pointer {{ if eq .Goal.Sex "female" }}bg-secondary-container/60 text-on-secondary-container{{ else }}bg-surface-container-low text-on-surface{{ end }}">
+            <input type="radio" name="sex" value="female" class="sr-only" {{ if eq .Goal.Sex "female" }}checked{{ end }} required />
+            <span class="text-label-lg font-semibold">{{ t "goals.female" }}</span>
+          </label>
+          <label class="flex items-center justify-center px-3 py-2.5 rounded-xl cursor-pointer {{ if eq .Goal.Sex "male" }}bg-secondary-container/60 text-on-secondary-container{{ else }}bg-surface-container-low text-on-surface{{ end }}">
+            <input type="radio" name="sex" value="male" class="sr-only" {{ if eq .Goal.Sex "male" }}checked{{ end }} />
+            <span class="text-label-lg font-semibold">{{ t "goals.male" }}</span>
+          </label>
+        </div>
+        {{ with index .Errors "sex" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <div class="flex flex-col gap-1">
+          <label for="age_years" class="text-label-lg font-semibold text-on-surface">{{ t "goals.age" }}</label>
+          <input id="age_years" type="number" name="age_years" value="{{ if .Goal.AgeYears }}{{ .Goal.AgeYears }}{{ end }}" min="14" max="100" inputmode="numeric" required class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+          {{ with index .Errors "age_years" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="height_cm" class="text-label-lg font-semibold text-on-surface">{{ t "goals.height" }}</label>
+          <input id="height_cm" type="number" name="height_cm" value="{{ if .Goal.HeightCM }}{{ .Fmt.Number .Goal.HeightCM }}{{ end }}" min="120" max="230" step="0.1" inputmode="decimal" required class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+          {{ with index .Errors "height_cm" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="weight_kg" class="text-label-lg font-semibold text-on-surface">{{ t "goals.weight" }}</label>
+          <input id="weight_kg" type="number" name="weight_kg" value="{{ if .Goal.WeightKG }}{{ .Fmt.Grams .Goal.WeightKG }}{{ end }}" min="35" max="300" step="0.1" inputmode="decimal" required class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+          {{ with index .Errors "weight_kg" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold text-on-surface">{{ t "goals.activity" }}</span>
+        <div class="grid grid-cols-2 gap-2">
+          {{ $activity := .Goal.Activity }}
+          {{ range .Activities }}
+          <label class="flex items-center justify-center px-3 py-2.5 rounded-xl cursor-pointer text-label-lg font-semibold {{ if eq .Value $activity }}bg-primary text-on-primary{{ else }}bg-surface-container-low text-on-surface-variant{{ end }}">
+            <input type="radio" name="activity" value="{{ .Value }}" class="sr-only" {{ if eq .Value $activity }}checked{{ end }} required />
+            {{ t .LabelKey }}
+          </label>
+          {{ end }}
+        </div>
+        {{ with index .Errors "activity" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <span class="text-label-lg font-semibold text-on-surface">{{ t "goals.direction" }}</span>
+        <div class="grid grid-cols-3 gap-2">
+          {{ $direction := .Goal.Direction }}
+          {{ range .Directions }}
+          <label class="flex items-center justify-center px-2 py-2.5 rounded-xl cursor-pointer text-label-lg font-semibold text-center {{ if eq .Value $direction }}bg-primary text-on-primary{{ else }}bg-surface-container-low text-on-surface-variant{{ end }}">
+            <input type="radio" name="direction" value="{{ .Value }}" class="sr-only" {{ if eq .Value $direction }}checked{{ end }} required />
+            {{ t .LabelKey }}
+          </label>
+          {{ end }}
+        </div>
+        {{ with index .Errors "direction" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+      </div>
+    </section>
+
+    <button type="submit" class="inline-flex items-center justify-center w-full min-h-[52px] rounded-full bg-primary text-on-primary text-label-lg font-bold vitalis-fab-shadow active:scale-[0.98] transition-transform">{{ t "goals.submit" }}</button>
+  </form>
+
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-sm">
+    <div class="flex items-center justify-between gap-2">
+      <h3 class="text-headline-sm font-bold text-on-surface">{{ t "settings.api_title" }}</h3>
+      <a href="/settings/api" class="text-label-lg font-bold text-primary min-h-[44px] inline-flex items-center">{{ t "settings.api_create" }} →</a>
+    </div>
+    <p class="text-body-sm text-on-surface-variant">{{ t "settings.api_help" }}</p>
+  </section>
+
+</div>
+{{ end }}

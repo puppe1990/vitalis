@@ -1,0 +1,198 @@
+{{ define "content" }}
+<div class="flex flex-col gap-space-lg">
+
+  {{/* Date navigation: a diary you cannot walk backwards is a scoreboard. */}}
+  <section class="flex flex-col gap-space-sm pt-space-xs">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-space-xs min-w-0">
+        <span class="text-primary">{{ template "icon_diario" . }}</span>
+        <h2 class="text-headline-sm font-bold text-on-surface tracking-tight truncate">{{ .DayLabel }}</h2>
+      </div>
+      <div class="flex items-center gap-1 shrink-0">
+        <a href="{{ .PrevURL }}" class="w-9 h-9 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant active:scale-95 transition-transform" aria-label="{{ t "diario.prev_day" }}">{{ template "icon_chevron_left" . }}</a>
+        <a href="{{ .NextURL }}" class="w-9 h-9 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant active:scale-95 transition-transform" aria-label="{{ t "diario.next_day" }}">{{ template "icon_chevron_right" . }}</a>
+      </div>
+    </div>
+  </section>
+
+  {{/* Hero card: radial calorie ring plus the two summary tiles. */}}
+  <section class="bg-surface-container-lowest rounded-3xl p-5 vitalis-card flex flex-col gap-5">
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex flex-col min-w-0">
+        <span class="text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">{{ t "diario.balance" }}</span>
+        <h3 class="text-headline-sm font-extrabold text-on-surface">{{ t "diario.rhythm" }}</h3>
+      </div>
+      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-container/40 text-on-secondary-container text-label-sm font-bold shrink-0">
+        <span class="w-2 h-2 rounded-full bg-primary" aria-hidden="true"></span>
+        {{ t .StatusKey }}
+      </span>
+    </div>
+
+    <div class="flex items-center gap-4">
+      {{/* The ring is drawn with a dash offset, the technique the Stitch
+           source uses: one circle for the track, one for the fill. */}}
+      <div class="relative w-36 h-36 shrink-0 flex items-center justify-center">
+        <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="48" fill="transparent" stroke="rgb(var(--md-surface-container))" stroke-width="10"></circle>
+          <circle cx="60" cy="60" r="48" fill="transparent" stroke="rgb(var(--md-primary))" stroke-width="10" stroke-linecap="round" stroke-dasharray="301.6" stroke-dashoffset="{{ .RingOffset }}"></circle>
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+          <span class="text-numeric-metric tabular text-on-surface leading-none">{{ .Fmt.Number .Day.Balance.RemainingKcal }}</span>
+          <span class="text-label-sm text-on-surface-variant font-medium mt-1">{{ t "diario.remaining" }}</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col flex-1 gap-3 justify-center min-w-0">
+        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-surface-container-low">
+          <div class="w-8 h-8 rounded-lg bg-primary-fixed flex items-center justify-center text-on-primary-fixed shrink-0">{{ template "icon_target" . }}</div>
+          <div class="flex flex-col min-w-0">
+            <span class="text-label-sm text-on-surface-variant leading-none">{{ t "diario.target" }}</span>
+            <span class="text-label-lg font-bold text-on-surface mt-0.5 truncate">{{ .TargetLabel }} kcal</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-surface-container-low">
+          <div class="w-8 h-8 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container shrink-0">{{ template "icon_utensils" . }}</div>
+          <div class="flex flex-col min-w-0">
+            <span class="text-label-sm text-on-surface-variant leading-none">{{ t "diario.consumed" }}</span>
+            <span class="text-label-lg font-bold text-primary mt-0.5 truncate">{{ .Fmt.Number .Day.Total.Kcal }} kcal</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{/* Burned energy. Hidden when the day has no burn so the card does not
+         brag about a zero the user never entered. */}}
+    {{ if gt .Day.Balance.BurnedKcal 0.0 }}
+    <div class="flex items-center justify-between bg-surface-container-low px-3.5 py-2.5 rounded-xl">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-7 h-7 rounded-full bg-tertiary-container/15 text-tertiary-container flex items-center justify-center shrink-0">{{ template "icon_fire" . }}</div>
+        <div class="flex flex-col min-w-0">
+          <span class="text-label-sm font-bold text-on-surface truncate">{{ .Fmt.Number .Day.Balance.BurnedKcal }} {{ t "diario.burned" }}</span>
+          <span class="text-body-sm text-on-surface-variant truncate">{{ t "diario.burned_hint" }}</span>
+        </div>
+      </div>
+      <span class="text-primary shrink-0">{{ template "icon_check" . }}</span>
+    </div>
+    {{ end }}
+  </section>
+
+  {{/* Macronutrients: one linear bar per macro with the gram pair. */}}
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-4">
+    <div class="flex items-center justify-between">
+      <h3 class="text-headline-sm font-bold text-on-surface">{{ t "diario.macros" }}</h3>
+      <span class="text-label-sm text-on-surface-variant font-medium">{{ t "diario.macros_target" }}</span>
+    </div>
+    <div class="flex flex-col gap-4">
+      {{ range .Day.Macros }}
+      <div class="flex flex-col gap-1.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="flex items-center gap-1.5 text-label-lg font-semibold text-on-surface">
+            <span class="w-2.5 h-2.5 rounded-full bg-{{ .Color }} shrink-0" aria-hidden="true"></span>
+            {{ t .Label }}
+          </span>
+          <span class="text-label-sm text-on-surface-variant tabular">{{ $.Fmt.Grams .Current }}g / {{ $.Fmt.Grams .Target }}g ({{ $.Fmt.Number .Percent }}%)</span>
+        </div>
+        <div class="vitalis-bar vitalis-bar-{{ .Color }}" role="progressbar" aria-valuenow="{{ $.Fmt.Number .Percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ t .Label }}">
+          <span style="width: {{ .Percent }}%"></span>
+        </div>
+      </div>
+      {{ end }}
+    </div>
+  </section>
+
+  {{/* Hydration: filled glass icons plus one quick-add button. */}}
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-4">
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-space-sm min-w-0">
+        <span class="w-9 h-9 rounded-full bg-secondary-container/50 text-secondary flex items-center justify-center shrink-0">{{ template "icon_drop" . }}</span>
+        <div class="flex flex-col min-w-0">
+          <h3 class="text-headline-sm font-bold text-on-surface truncate">{{ t "diario.hydration" }}</h3>
+          <span class="text-label-sm text-on-surface-variant">{{ t "diario.hydration_target" .WaterTarget }}</span>
+        </div>
+      </div>
+      <div class="text-right shrink-0">
+        <span class="block text-headline-md font-extrabold text-on-surface">{{ .WaterLabel }}</span>
+        <span class="block text-label-sm text-on-surface-variant">{{ t "diario.hydration_done" (.Fmt.Number .Day.Water.Percent) }}</span>
+      </div>
+    </div>
+
+    {{/* One icon per 250 ml glass to the target, capped at 10 so a 4 L target
+         does not turn the card into a wall of cups. Filled slots are what the
+         user already drank. */}}
+    <div class="flex flex-wrap gap-1">
+      {{ $glasses := .Day.Water.Glasses }}
+      {{ $target := .Day.Water.GlassesTarget }}
+      {{ if gt $target 10 }}{{ $target = 10 }}{{ end }}
+      {{ range $i := .Fmt.Sequence $target }}
+      <span class="flex-1 min-w-[2.1rem] flex flex-col items-center justify-center py-1.5 rounded-xl {{ if lt $i $glasses }}bg-secondary-container text-on-secondary-fixed{{ else }}bg-surface-container text-outline-variant{{ end }}">
+        {{ template "icon_drop" $ }}
+        <span class="text-label-sm mt-0.5">{{ if lt $i $glasses }}250{{ else }}+250{{ end }}</span>
+      </span>
+      {{ end }}
+    </div>
+
+    <form method="post" action="/diario/agua?d={{ .DayISO }}">
+      {{ csrfField .CSRFToken }}
+      <button type="submit" class="w-full min-h-[48px] inline-flex items-center justify-center gap-2 rounded-full bg-surface-container text-primary text-label-lg font-bold active:scale-[0.98] transition-transform">
+        {{ template "icon_plus" . }} {{ t "diario.add_water" }}
+      </button>
+    </form>
+  </section>
+
+  {{/* Meals: four cards in chronological order, always present. */}}
+  <section class="flex flex-col gap-space-md">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-space-xs">
+        <span class="text-primary">{{ template "icon_utensils" . }}</span>
+        <h3 class="text-headline-sm font-bold text-on-surface">{{ t "diario.meals" }}</h3>
+      </div>
+      <span class="text-label-sm text-on-surface-variant">{{ t "diario.meals_count" .Day.MealCount }}</span>
+    </div>
+
+    {{ range .Day.Meals }}
+    <article class="bg-surface-container-lowest rounded-2xl vitalis-card overflow-hidden">
+      <header class="flex items-center justify-between gap-space-sm px-4 py-3">
+        <div class="flex items-center gap-space-sm min-w-0">
+          <span class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 {{ if eq .Meal "cafe_da_manha" }}bg-carb-soft text-carb{{ else if eq .Meal "almoco" }}bg-primary-fixed text-primary{{ else if eq .Meal "lanche" }}bg-secondary-container/60 text-secondary{{ else }}bg-surface-container text-on-surface-variant{{ end }}">
+            {{ if eq .Icon "sunrise" }}{{ template "icon_sunrise" $ }}{{ else if eq .Icon "sun" }}{{ template "icon_sun" $ }}{{ else if eq .Icon "coffee" }}{{ template "icon_coffee" $ }}{{ else }}{{ template "icon_moon" $ }}{{ end }}
+          </span>
+          <div class="flex flex-col min-w-0">
+            <h4 class="text-headline-sm font-bold text-on-surface truncate">{{ .Label }}</h4>
+            <span class="text-label-sm text-on-surface-variant truncate">{{ $.Fmt.Number .Kcal }} kcal</span>
+          </div>
+        </div>
+        <a href="{{ .AddURL }}" class="w-9 h-9 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-surface-container text-primary active:scale-95 transition-transform" aria-label="{{ t "diario.register_meal" .Label }}">{{ template "icon_plus" $ }}</a>
+      </header>
+
+      {{ if .HasItems }}
+      <ul class="divide-y divide-surface-container-low">
+        {{ range .Entries }}
+        <li class="flex items-center justify-between gap-space-sm px-4 py-3">
+          <div class="flex flex-col min-w-0">
+            <span class="text-body-md font-semibold text-on-surface truncate">{{ .FoodName }}</span>
+            <span class="text-body-sm text-on-surface-variant">{{ $.Fmt.Grams .Grams }} g</span>
+            <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-protein-soft text-protein text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-protein"></span>P: {{ $.Fmt.Grams .Nutrients.Protein }}g</span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-carb-soft text-carb text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-carb"></span>C: {{ $.Fmt.Grams .Nutrients.Carb }}g</span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-fat-soft text-fat text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-fat"></span>G: {{ $.Fmt.Grams .Nutrients.Fat }}g</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-label-lg font-bold text-on-surface tabular">{{ $.Fmt.Number .Nutrients.Kcal }}</span>
+            <form method="post" action="/diario/entradas/{{ .ID }}/remover?d={{ $.DayISO }}">
+              {{ csrfField $.CSRFToken }}
+              <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container" aria-label="{{ t "diario.remove_entry" }}">{{ template "icon_minus" $ }}</button>
+            </form>
+          </div>
+        </li>
+        {{ end }}
+      </ul>
+      {{ else }}
+      <p class="px-4 pb-4 text-body-sm text-on-surface-variant">{{ t "diario.meal_empty" }}</p>
+      {{ end }}
+    </article>
+    {{ end }}
+  </section>
+
+</div>
+{{ end }}

@@ -1,0 +1,25 @@
+{
+  "name": "vitalis-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for the Vitalis calorie diary (log meals, read the day, track progress)",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "vitalis-mcp": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^10.6.0"
+  }
+}

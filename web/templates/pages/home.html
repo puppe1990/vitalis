@@ -1,0 +1,60 @@
+{{ define "content" }}
+<div class="min-h-[calc(100svh-2rem)] flex flex-col gap-space-xl py-space-lg">
+
+  <header class="flex items-center justify-between gap-space-sm">
+    <div class="flex items-center gap-space-sm">
+      <span class="text-primary">{{ template "icon_logo" . }}</span>
+      <span class="text-headline-sm font-extrabold text-primary tracking-tight">Vitalis</span>
+    </div>
+    <.locale-toggle current="{{ .Locale }}" />
+  </header>
+
+  {{/* Hero: the ring is the product's one visual idea, so it leads. */}}
+  <section class="flex flex-col items-center text-center gap-space-md" data-testid="amarra-ready">
+    <div class="relative w-52 h-52 flex items-center justify-center">
+      <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="48" fill="transparent" stroke="rgb(var(--md-surface-container))" stroke-width="9"></circle>
+        <circle cx="60" cy="60" r="48" fill="transparent" stroke="rgb(var(--md-primary))" stroke-width="9" stroke-linecap="round" stroke-dasharray="301.6" stroke-dashoffset="96"></circle>
+      </svg>
+      <div class="absolute inset-0 flex flex-col items-center justify-center">
+        <span class="text-numeric-metric tabular text-on-surface leading-none">650</span>
+        <span class="text-label-sm text-on-surface-variant font-medium mt-1">{{ t "diario.remaining" }}</span>
+      </div>
+    </div>
+
+    <h1 class="text-headline-xl-mobile font-extrabold text-on-surface tracking-tight max-w-sm">{{ t "home.hero_title" }}</h1>
+    <p class="text-body-lg text-on-surface-variant max-w-sm">{{ t "home.hero_body" }}</p>
+  </section>
+
+  <section class="flex flex-col gap-space-sm">
+    <a href="/signup" class="inline-flex items-center justify-center w-full min-h-[56px] rounded-full bg-primary text-on-primary text-label-lg font-bold vitalis-fab-shadow active:scale-[0.98] transition-transform">{{ t "home.cta_start" }}</a>
+    <a href="/login" class="inline-flex items-center justify-center w-full min-h-[52px] rounded-full bg-surface-container text-primary text-label-lg font-bold">{{ t "auth.login_title" }}</a>
+  </section>
+
+  {{/* Three claims, each one true of the shipped app. */}}
+  <section class="grid gap-2.5">
+    <article class="flex items-start gap-space-sm bg-surface-container-lowest rounded-2xl p-4 vitalis-card">
+      <span class="w-10 h-10 rounded-full bg-protein-soft text-protein flex items-center justify-center shrink-0">{{ template "icon_target" . }}</span>
+      <div class="flex flex-col min-w-0">
+        <h2 class="text-label-lg font-bold text-on-surface">{{ t "home.feature_goal_title" }}</h2>
+        <p class="text-body-sm text-on-surface-variant">{{ t "home.feature_goal_body" }}</p>
+      </div>
+    </article>
+    <article class="flex items-start gap-space-sm bg-surface-container-lowest rounded-2xl p-4 vitalis-card">
+      <span class="w-10 h-10 rounded-full bg-carb-soft text-carb flex items-center justify-center shrink-0">{{ template "icon_utensils" . }}</span>
+      <div class="flex flex-col min-w-0">
+        <h2 class="text-label-lg font-bold text-on-surface">{{ t "home.feature_diary_title" }}</h2>
+        <p class="text-body-sm text-on-surface-variant">{{ t "home.feature_diary_body" }}</p>
+      </div>
+    </article>
+    <article class="flex items-start gap-space-sm bg-surface-container-lowest rounded-2xl p-4 vitalis-card">
+      <span class="w-10 h-10 rounded-full bg-secondary-container/60 text-secondary flex items-center justify-center shrink-0">{{ template "icon_sparkle" . }}</span>
+      <div class="flex flex-col min-w-0">
+        <h2 class="text-label-lg font-bold text-on-surface">{{ t "home.feature_mcp_title" }}</h2>
+        <p class="text-body-sm text-on-surface-variant">{{ t "home.feature_mcp_body" }}</p>
+      </div>
+    </article>
+  </section>
+
+</div>
+{{ end }}

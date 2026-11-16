@@ -1,0 +1,93 @@
+{{ define "content" }}
+<div class="flex flex-col gap-space-lg">
+
+  {{/* Destination header: the meal the food will land in. */}}
+  <section class="flex items-center justify-between gap-space-sm pt-space-xs">
+    <div class="flex items-center gap-space-sm min-w-0">
+      <span class="text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">{{ t "alimentos.destination" }}</span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary-container/50 text-on-secondary-container text-label-lg font-bold">
+        <span class="text-primary">{{ template "icon_utensils" . }}</span>
+        {{ .MealLabel }}
+        {{ template "icon_chevron_down" . }}
+      </span>
+    </div>
+    <span class="text-label-sm text-on-surface-variant shrink-0">{{ t "alimentos.goal" .GoalLabel }} kcal</span>
+  </section>
+
+  {{/* Search: a GET form so Drive rewrites the query and the browser can share
+       the URL. The meal and date ride as hidden inputs (#361). */}}
+  <form method="get" action="/alimentos" id="food-search" class="flex items-center gap-space-sm bg-surface-container-lowest rounded-full px-4 min-h-[52px] vitalis-card focus-within:ring-2 focus-within:ring-primary">
+    <span class="text-on-surface-variant shrink-0">{{ template "icon_search" . }}</span>
+    <input type="search" name="q" value="{{ .Search }}" placeholder="{{ t "alimentos.search" }}" class="flex-1 bg-transparent border-0 outline-none text-body-md text-on-surface placeholder:text-outline min-w-0" aria-label="{{ t "alimentos.search" }}" />
+    <input type="hidden" name="meal" value="{{ .Meal }}" />
+    <input type="hidden" name="d" value="{{ .DayISO }}" />
+  </form>
+
+  {{/* Quick entry. Only two shortcuts are real: the manual form and the base
+       search. A "foto com IA" tile or a barcode scanner would be a promise the
+       app cannot keep, so those are not drawn. */}}
+  <section class="flex flex-col gap-space-sm">
+    <span class="text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">{{ t "alimentos.quick" }}</span>
+    <div class="grid grid-cols-2 gap-2.5">
+      <a href="/alimentos/novo?meal={{ .Meal }}" class="flex flex-col items-center justify-center gap-2 py-4 rounded-2xl bg-surface-container-lowest vitalis-card text-on-surface-variant active:scale-95 transition-transform">
+        <span class="w-11 h-11 rounded-full bg-secondary-container/60 flex items-center justify-center text-secondary">{{ template "icon_sparkle" . }}</span>
+        <span class="text-label-sm font-semibold text-center leading-tight">{{ t "alimentos.manual" }}</span>
+      </a>
+      <a href="#food-search" class="flex flex-col items-center justify-center gap-2 py-4 rounded-2xl bg-surface-container-lowest vitalis-card text-on-surface-variant active:scale-95 transition-transform">
+        <span class="w-11 h-11 rounded-full bg-primary-fixed flex items-center justify-center text-primary">{{ template "icon_search" . }}</span>
+        <span class="text-label-sm font-semibold text-center leading-tight">{{ t "alimentos.browse" }}</span>
+      </a>
+    </div>
+  </section>
+
+  {{/* Category chips. All is a link back to the unfiltered list. */}}
+  <section class="flex gap-2 overflow-x-auto no-scrollbar -mx-margin-mobile px-margin-mobile pb-1">
+    <a href="/alimentos?meal={{ .Meal }}&d={{ .DayISO }}" class="shrink-0 px-4 py-2 rounded-full text-label-lg {{ if eq .Category "" }}bg-primary text-on-primary{{ else }}bg-surface-container-lowest text-on-surface-variant vitalis-card{{ end }}">{{ t "alimentos.recent" }}</a>
+    {{ range .Categories }}
+    <a href="/alimentos?meal={{ $.Meal }}&d={{ $.DayISO }}&category={{ . }}" class="shrink-0 px-4 py-2 rounded-full text-label-lg {{ if eq . $.Category }}bg-primary text-on-primary{{ else }}bg-surface-container-lowest text-on-surface-variant vitalis-card{{ end }}">{{ . }}</a>
+    {{ end }}
+  </section>
+
+  {{/* Food list. Each row links to the detail page where the portion is
+       chosen; the trailing button logs the default portion in one tap. */}}
+  {{ if .Empty }}
+  <section class="flex flex-col items-center justify-center gap-space-sm py-space-xl text-center">
+    <span class="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">{{ template "icon_search" . }}</span>
+    <p class="text-headline-sm font-bold text-on-surface">{{ t "alimentos.empty" }}</p>
+    <p class="text-body-md text-on-surface-variant max-w-xs">{{ t "alimentos.empty_hint" }}</p>
+    <a href="/alimentos/novo?meal={{ .Meal }}" class="mt-2 inline-flex items-center gap-2 min-h-[48px] px-6 rounded-full bg-primary text-on-primary text-label-lg font-bold">{{ template "icon_plus" . }}{{ t "alimentos.manual" }}</a>
+  </section>
+  {{ else }}
+  <ul class="flex flex-col gap-2.5">
+    {{ range .Foods }}
+    <li class="bg-surface-container-lowest rounded-2xl vitalis-card">
+      <div class="flex items-center gap-space-sm p-3">
+        <a href="/alimento/{{ .ID }}?meal={{ $.Meal }}&d={{ $.DayISO }}" class="flex items-center gap-space-sm min-w-0 flex-1">
+          <span class="w-14 h-14 rounded-xl bg-surface-container flex items-center justify-center text-primary shrink-0">{{ template "icon_utensils" $ }}</span>
+          <span class="flex flex-col min-w-0">
+            <span class="text-headline-sm font-bold text-on-surface truncate">{{ .Name }}</span>
+            <span class="text-body-sm text-on-surface-variant truncate">
+              {{ if .PortionLabel }}{{ .PortionLabel }}{{ else }}{{ $.Fmt.Grams .PortionGrams }} g{{ end }}
+              · {{ $.Fmt.Number .Per100g.Kcal }} kcal / 100 g
+            </span>
+            <span class="flex flex-wrap items-center gap-1.5 mt-1">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-protein-soft text-protein text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-protein"></span>P: {{ $.Fmt.Grams .Per100g.Protein }}g</span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-carb-soft text-carb text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-carb"></span>C: {{ $.Fmt.Grams .Per100g.Carb }}g</span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-fat-soft text-fat text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-fat"></span>G: {{ $.Fmt.Grams .Per100g.Fat }}g</span>
+            </span>
+          </span>
+        </a>
+        <form method="post" action="/alimentos/{{ .ID }}/registrar?d={{ $.DayISO }}" class="shrink-0">
+          {{ csrfField $.CSRFToken }}
+          <input type="hidden" name="meal" value="{{ $.Meal }}" />
+          <input type="hidden" name="grams" value="{{ $.Fmt.Grams .PortionGrams }}" />
+          <button type="submit" class="w-11 h-11 flex items-center justify-center rounded-full bg-primary-fixed text-primary active:scale-95 transition-transform" aria-label="{{ t "alimentos.add" }} {{ .Name }}">{{ template "icon_plus" $ }}</button>
+        </form>
+      </div>
+    </li>
+    {{ end }}
+  </ul>
+  {{ end }}
+
+</div>
+{{ end }}

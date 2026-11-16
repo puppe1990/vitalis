@@ -1,0 +1,53 @@
+{{ define "content" }}
+<div class="flex flex-col gap-space-md">
+
+  <div class="flex items-center gap-space-sm pt-space-xs">
+    <a href="/metas" class="inline-flex items-center gap-1.5 min-h-[44px] px-2 -ml-2 rounded-full text-on-surface-variant text-label-lg">{{ template "icon_back" . }}{{ t "goals.title" }}</a>
+  </div>
+
+  <section class="flex flex-col gap-1">
+    <h2 class="text-headline-md font-extrabold text-on-surface">{{ t "settings.api_title" }}</h2>
+    <p class="text-body-md text-on-surface-variant">{{ t "settings.api_help" }}</p>
+  </section>
+
+  {{/* The plaintext token appears exactly once, on the POST response. */}}
+  {{ if .Plain }}
+  <section class="bg-secondary-container/40 rounded-2xl p-5 vitalis-card flex flex-col gap-space-sm">
+    <span class="text-label-lg font-bold text-on-secondary-container">{{ .Notice }}</span>
+    <code class="block w-full overflow-x-auto rounded-xl bg-ink/90 px-3 py-3 text-label-md text-primary-fixed break-all">{{ .Plain }}</code>
+    <span class="text-body-sm text-on-surface-variant">{{ t "settings.api_never" }}</span>
+  </section>
+  {{ end }}
+
+  <form method="post" action="/settings/api" class="flex items-end gap-2 bg-surface-container-lowest rounded-2xl p-4 vitalis-card">
+    {{ csrfField .CSRFToken }}
+    <div class="flex flex-col gap-1 flex-1 min-w-0">
+      <label for="label" class="text-label-lg font-semibold text-on-surface">{{ t "settings.api_label" }}</label>
+      <input id="label" type="text" name="label" placeholder="Notebook" maxlength="60" class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+    </div>
+    <button type="submit" class="min-h-[48px] px-5 rounded-full bg-primary text-on-primary text-label-lg font-bold active:scale-95 transition-transform shrink-0">{{ t "settings.api_create" }}</button>
+  </form>
+
+  <section class="bg-surface-container-lowest rounded-2xl vitalis-card overflow-hidden">
+    {{ if .Empty }}
+    <p class="p-5 text-body-md text-on-surface-variant">{{ t "settings.api_empty" }}</p>
+    {{ else }}
+    <ul class="divide-y divide-surface-container-low">
+      {{ range .Tokens }}
+      <li class="flex items-center justify-between gap-space-sm px-4 py-3">
+        <div class="flex flex-col min-w-0">
+          <span class="text-body-md font-semibold text-on-surface truncate">{{ if .Label }}{{ .Label }}{{ else }}MCP{{ end }}</span>
+          <span class="text-body-sm text-on-surface-variant">{{ .CreatedAt.Format "02/01/2006" }}</span>
+        </div>
+        <form method="post" action="/settings/api/{{ .ID }}/revogar" class="shrink-0">
+          {{ csrfField $.CSRFToken }}
+          <button type="submit" class="min-h-[44px] px-4 rounded-full bg-surface-container text-danger text-label-lg font-semibold active:scale-95 transition-transform">{{ t "settings.api_revoke" }}</button>
+        </form>
+      </li>
+      {{ end }}
+    </ul>
+    {{ end }}
+  </section>
+
+</div>
+{{ end }}

@@ -1,0 +1,133 @@
+{{ define "content" }}
+<div class="flex flex-col gap-space-md">
+
+  {{/* Header: back link plus the verified badge. */}}
+  <div class="flex items-center justify-between gap-space-sm pt-space-xs">
+    <a href="/alimentos?meal={{ .Meal }}&d={{ .DayISO }}" class="inline-flex items-center gap-1.5 min-h-[44px] px-2 -ml-2 rounded-full text-on-surface-variant text-label-lg">{{ template "icon_back" . }}{{ t "alimentos.title" }}</a>
+    {{ if .Food.Verified }}
+    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-container/50 text-on-secondary-container text-label-sm font-bold">{{ template "icon_verificado" . }}{{ t "alimento.verified" }}</span>
+    {{ end }}
+  </div>
+
+  {{/* Identity card. The Stitch source uses a food photo; this app has no photo
+       pipeline, so the icon tile carries the same visual weight honestly. */}}
+  <section class="bg-surface-container-lowest rounded-2xl vitalis-card overflow-hidden">
+    <div class="h-32 bg-gradient-to-br from-secondary-container/50 via-surface-container to-primary-fixed/40 flex items-center justify-center text-primary">
+      <span class="w-20 h-20 rounded-full bg-ink/70 backdrop-blur flex items-center justify-center">{{ template "icon_utensils" . }}</span>
+    </div>
+    <div class="p-5 flex flex-col gap-1">
+      {{ if .Food.Category }}<span class="text-label-sm uppercase tracking-wider text-primary font-bold">{{ .Food.Category }}</span>{{ end }}
+      <h2 class="text-headline-md font-extrabold text-on-surface">{{ .Food.Name }}</h2>
+      {{ if .Food.Brand }}<p class="text-body-sm text-on-surface-variant">{{ .Food.Brand }}</p>{{ end }}
+    </div>
+  </section>
+
+  {{/* Energy for the current portion, with the small kcal/g chip. */}}
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex items-center justify-between gap-4">
+    <div class="flex flex-col min-w-0">
+      <span class="text-label-sm text-on-surface-variant">{{ t "alimento.energy" }}</span>
+      <span class="text-numeric-metric tabular text-primary leading-none mt-1">{{ .KcalLabel }} <span class="text-label-lg text-on-surface-variant font-semibold">kcal</span></span>
+      <span class="text-label-sm text-on-surface-variant mt-2">{{ .KcalPerGram }}</span>
+    </div>
+    <svg class="w-16 h-16 shrink-0 -rotate-90" viewBox="0 0 64 64" aria-hidden="true">
+      <circle cx="32" cy="32" r="26" fill="transparent" stroke="rgb(var(--md-surface-container))" stroke-width="7"></circle>
+      <circle cx="32" cy="32" r="26" fill="transparent" stroke="rgb(var(--md-primary))" stroke-width="7" stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="40"></circle>
+    </svg>
+  </section>
+
+  {{/* Portion adjuster. The minus/plus links reload with ?g= so the server
+       owns the arithmetic; the number is a real input for a typed portion. */}}
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-md">
+    <div class="flex items-center justify-between">
+      <h3 class="text-headline-sm font-bold text-on-surface">{{ t "alimento.portion" }}</h3>
+      <span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant text-label-sm font-semibold">{{ .KcalPerGram }}</span>
+    </div>
+
+    <form method="get" action="{{ .DetailURL }}" class="flex items-center gap-2">
+      <input type="hidden" name="meal" value="{{ .Meal }}" />
+      <input type="hidden" name="d" value="{{ .DayISO }}" />
+      <a href="{{ .DetailURL }}?g={{ .Fmt.Grams .PrevGrams }}&meal={{ .Meal }}&d={{ .DayISO }}" class="w-12 h-12 flex items-center justify-center rounded-xl bg-surface-container text-on-surface-variant active:scale-95 transition-transform" aria-label="−25 g">{{ template "icon_minus" . }}</a>
+      <div class="flex-1 flex flex-col items-center justify-center rounded-xl bg-surface-container-low px-2 py-1.5">
+        <input type="number" name="g" value="{{ .Fmt.Grams .Grams }}" min="1" max="5000" step="1" inputmode="decimal" class="w-full bg-transparent border-0 outline-none text-center text-headline-lg font-extrabold text-on-surface tabular" aria-label="{{ t "alimento.portion" }}" />
+        <span class="text-label-sm text-on-surface-variant">{{ t "alimento.grams" }}</span>
+      </div>
+      <a href="{{ .DetailURL }}?g={{ .Fmt.Grams .NextGrams }}&meal={{ .Meal }}&d={{ .DayISO }}" class="w-12 h-12 flex items-center justify-center rounded-xl bg-primary text-on-primary active:scale-95 transition-transform" aria-label="+25 g">{{ template "icon_plus" . }}</a>
+    </form>
+
+    <div class="flex flex-col gap-space-sm">
+      <span class="text-label-sm text-on-surface-variant font-semibold">{{ t "alimento.quick_measures" }}</span>
+      <div class="grid grid-cols-2 gap-2">
+        <span class="flex items-center justify-between px-3 py-2 rounded-xl bg-secondary-container/40 text-on-secondary-container text-label-lg font-semibold">
+          {{ t "alimento.current" }} <span class="tabular">{{ .Fmt.Grams .Grams }} g</span>
+        </span>
+        {{ range .Presets }}
+        <a href="{{ $.DetailURL }}?g={{ $.Fmt.Grams .Grams }}&meal={{ $.Meal }}&d={{ $.DayISO }}" class="flex items-center justify-between px-3 py-2 rounded-xl bg-surface-container text-on-surface-variant text-label-lg font-semibold active:scale-[0.98] transition-transform">
+          {{ .Label }} <span class="tabular">{{ $.Fmt.Grams .Grams }} g</span>
+        </a>
+        {{ end }}
+      </div>
+    </div>
+  </section>
+
+  {{/* Macro breakdown: the segmented bar plus the three tiles. */}}
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-md">
+    <div class="flex items-center justify-between">
+      <h3 class="text-headline-sm font-bold text-on-surface">{{ t "alimento.macros" }}</h3>
+      <span class="text-label-sm text-on-surface-variant">{{ t "alimento.macros_hint" }}</span>
+    </div>
+
+    <div class="flex h-2 w-full overflow-hidden rounded-full bg-surface-container">
+      <span class="bg-protein" style="width: {{ .Share.Protein }}%"></span>
+      <span class="bg-carb" style="width: {{ .Share.Carb }}%"></span>
+      <span class="bg-fat" style="width: {{ .Share.Fat }}%"></span>
+    </div>
+
+    <div class="grid grid-cols-3 gap-2">
+      <div class="flex flex-col gap-0.5 p-3 rounded-xl bg-surface-container-low">
+        <span class="flex items-center gap-1 text-label-sm text-protein font-semibold"><span class="w-2 h-2 rounded-full bg-protein"></span>{{ t "macro.protein" }}</span>
+        <span class="text-headline-sm font-extrabold text-on-surface tabular">{{ .Fmt.Grams .Portion.Protein }}g</span>
+        <span class="text-label-sm text-on-surface-variant">{{ .Fmt.Number .Share.Protein }}% kcal</span>
+      </div>
+      <div class="flex flex-col gap-0.5 p-3 rounded-xl bg-surface-container-low">
+        <span class="flex items-center gap-1 text-label-sm text-carb font-semibold"><span class="w-2 h-2 rounded-full bg-carb"></span>{{ t "macro.carb" }}</span>
+        <span class="text-headline-sm font-extrabold text-on-surface tabular">{{ .Fmt.Grams .Portion.Carb }}g</span>
+        <span class="text-label-sm text-on-surface-variant">{{ .Fmt.Number .Share.Carb }}% kcal</span>
+      </div>
+      <div class="flex flex-col gap-0.5 p-3 rounded-xl bg-surface-container-low">
+        <span class="flex items-center gap-1 text-label-sm text-fat font-semibold"><span class="w-2 h-2 rounded-full bg-fat"></span>{{ t "macro.fat" }}</span>
+        <span class="text-headline-sm font-extrabold text-on-surface tabular">{{ .Fmt.Grams .Portion.Fat }}g</span>
+        <span class="text-label-sm text-on-surface-variant">{{ .Fmt.Number .Share.Fat }}% kcal</span>
+      </div>
+    </div>
+  </section>
+
+  {{/* Destination picker: four pills, the active one filled. Submitting the
+       form is what actually logs the entry. */}}
+  <form method="post" action="/diario/entradas?d={{ .DayISO }}" class="flex flex-col gap-space-md">
+    {{ csrfField .CSRFToken }}
+    <input type="hidden" name="food_id" value="{{ .Food.ID }}" />
+    <input type="hidden" name="grams" value="{{ .Fmt.Grams .Grams }}" />
+
+    <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-sm">
+      <h3 class="text-headline-sm font-bold text-on-surface">{{ t "alimento.destination" }}</h3>
+      <div class="grid grid-cols-2 gap-2">
+        {{ $active := .Meal }}
+        {{ range .Meals }}
+        <label class="flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors {{ if eq .Value $active }}bg-primary text-on-primary{{ else }}bg-surface-container-low text-on-surface-variant{{ end }}">
+          <input type="radio" name="meal" value="{{ .Value }}" class="sr-only" {{ if eq .Value $active }}checked{{ end }} />
+          <span class="text-label-lg font-semibold">{{ .Label }}</span>
+          {{ if eq .Value $active }}<span class="ml-auto">{{ template "icon_check" $ }}</span>{{ end }}
+        </label>
+        {{ end }}
+      </div>
+    </section>
+
+    <button type="submit" class="inline-flex items-center justify-center gap-2 w-full min-h-[56px] rounded-full bg-primary text-on-primary text-label-lg font-bold vitalis-fab-shadow active:scale-[0.98] transition-transform">
+      {{ template "icon_plus" . }}
+      {{ t "alimento.add_to" .MealLabel }}
+      <span class="ml-1 px-2 py-0.5 rounded-full bg-ink/20 text-label-md tabular">{{ .KcalLabel }} kcal</span>
+    </button>
+  </form>
+
+</div>
+{{ end }}

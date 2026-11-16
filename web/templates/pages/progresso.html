@@ -1,0 +1,152 @@
+{{ define "content" }}
+<div class="flex flex-col gap-space-md">
+
+  {{/* Period tabs. Only the week is computed; the others are honest about it
+       via aria-disabled instead of silently showing the same data. */}}
+  <nav class="flex gap-2 pt-space-xs -mx-margin-mobile px-margin-mobile overflow-x-auto no-scrollbar" aria-label="{{ t "progresso.title" }}">
+    <span class="shrink-0 px-4 py-2 rounded-full bg-primary text-on-primary text-label-lg font-bold">{{ t "progresso.week" }}</span>
+    <span class="shrink-0 px-4 py-2 rounded-full bg-surface-container-lowest text-on-surface-variant text-label-lg vitalis-card">{{ t "progresso.month" }}</span>
+    <span class="shrink-0 px-4 py-2 rounded-full bg-surface-container-lowest text-on-surface-variant text-label-lg vitalis-card">{{ t "progresso.quarter" }}</span>
+    <span class="shrink-0 px-4 py-2 rounded-full bg-surface-container-lowest text-on-surface-variant text-label-lg vitalis-card">{{ t "progresso.year" }}</span>
+  </nav>
+
+  {{/* Weekly hero: the three KPIs from the Stitch summary card. */}}
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-md">
+    <div class="flex items-start justify-between gap-2">
+      <div class="flex flex-col min-w-0">
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-container/40 text-on-secondary-container text-label-sm font-bold w-fit">
+          {{ template "icon_trophy" . }}{{ t "progresso.weekly" }}
+        </span>
+        <h2 class="text-headline-md font-extrabold text-on-surface mt-2">{{ t "progresso.weekly" }}</h2>
+        <span class="text-body-sm text-on-surface-variant">{{ .WeekLabel }}</span>
+      </div>
+      <span class="w-10 h-10 rounded-full bg-primary-fixed text-primary flex items-center justify-center shrink-0">{{ template "icon_progresso" . }}</span>
+    </div>
+
+    <div class="grid grid-cols-3 gap-2">
+      <div class="flex flex-col p-3 rounded-xl bg-surface-container-low">
+        <span class="text-label-sm text-on-surface-variant leading-tight">{{ t "progresso.average" }}</span>
+        <span class="text-headline-sm font-extrabold text-on-surface tabular mt-0.5">{{ .AverageLabel }}</span>
+        <span class="text-label-sm text-on-surface-variant">{{ t "progresso.per_day" }}</span>
+      </div>
+      <div class="flex flex-col p-3 rounded-xl bg-surface-container-low">
+        <span class="text-label-sm text-on-surface-variant leading-tight">{{ t "progresso.adherence" }}</span>
+        <span class="text-headline-sm font-extrabold text-primary tabular mt-0.5">{{ .AdherenceLabel }}</span>
+        <span class="text-label-sm text-on-surface-variant">{{ t "progresso.within_target" }}</span>
+      </div>
+      <div class="flex flex-col p-3 rounded-xl bg-surface-container-low">
+        <span class="text-label-sm text-on-surface-variant leading-tight">{{ t "progresso.deficit" }}</span>
+        <span class="text-headline-sm font-extrabold {{ if lt .Summary.BalanceKcal 0.0 }}text-primary{{ else }}text-carb{{ end }} tabular mt-0.5">{{ .DeficitLabel }}</span>
+        <span class="text-label-sm text-on-surface-variant">{{ t "progresso.per_week" }}</span>
+      </div>
+    </div>
+  </section>
+
+  {{/* Daily intake bars. Heights are relative to the tallest day so a light
+       week still reads; the target line marks where the goal sits. */}}
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-md">
+    <div class="flex items-start justify-between gap-2">
+      <div class="flex flex-col min-w-0">
+        <h3 class="text-headline-sm font-bold text-on-surface">{{ t "progresso.intake" }}</h3>
+        <span class="text-body-sm text-on-surface-variant">{{ t "progresso.intake_hint" .TargetLabel }}</span>
+      </div>
+      <div class="flex items-center gap-2 shrink-0 text-label-sm text-on-surface-variant">
+        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-primary"></span>{{ t "progresso.normal_legend" }}</span>
+        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-carb"></span>{{ t "progresso.over_legend" }}</span>
+      </div>
+    </div>
+
+    <div class="relative">
+      {{/* The target line: the chart scale is the max of target and peak, so
+           100% would be the top of the plot; a dashed line marks the goal. */}}
+      <div class="absolute inset-x-0 border-t-2 border-dashed border-primary/30 pointer-events-none" style="bottom: {{ .TargetLinePct }}%"></div>
+      <div class="flex items-end justify-between gap-1.5 h-40 pt-2">
+        {{ range .Bars }}
+        <div class="flex flex-col items-center gap-1 flex-1 h-full justify-end">
+          <span class="text-label-sm tabular {{ if .Over }}text-carb{{ else }}text-on-surface-variant{{ end }}">{{ .KcalLabel }}</span>
+          <div class="w-full max-w-[28px] rounded-t-lg {{ if .Over }}bg-carb{{ else }}bg-primary{{ end }}" style="height: {{ .HeightPct }}%" role="img" aria-label="{{ .Label }}: {{ .KcalLabel }} kcal"></div>
+          <span class="text-label-sm text-on-surface-variant font-semibold">{{ .Label }}</span>
+        </div>
+        {{ end }}
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-surface-container-low">
+      <span class="flex items-center gap-1.5 text-body-sm text-on-surface-variant min-w-0">
+        <span class="w-1.5 h-1.5 rounded-full bg-tertiary-container shrink-0"></span>
+        <span class="truncate">{{ t "progresso.lowest" }}: {{ .Summary.WorstDay.Label }} ({{ .LowestLabel }})</span>
+      </span>
+      <span class="text-label-sm font-bold text-carb shrink-0 tabular">{{ .Fmt.Number .Summary.WorstDay.Kcal }} kcal</span>
+    </div>
+  </section>
+
+  {{/* Macro split: real distribution against the planned one. */}}
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-md">
+    <div class="flex items-start justify-between gap-2">
+      <div class="flex flex-col min-w-0">
+        <h3 class="text-headline-sm font-bold text-on-surface">{{ t "progresso.macro_balance" }}</h3>
+        <span class="text-body-sm text-on-surface-variant">{{ t "progresso.macro_hint" }}</span>
+      </div>
+      <span class="w-9 h-9 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center shrink-0">{{ template "icon_target" . }}</span>
+    </div>
+
+    <div class="flex h-2.5 w-full overflow-hidden rounded-full bg-surface-container">
+      <span class="bg-protein" style="width: {{ .MacroShare.Protein }}%"></span>
+      <span class="bg-carb" style="width: {{ .MacroShare.Carb }}%"></span>
+      <span class="bg-fat" style="width: {{ .MacroShare.Fat }}%"></span>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-surface-container-low">
+        <span class="flex items-center gap-2 text-label-lg font-semibold text-on-surface"><span class="w-2.5 h-2.5 rounded-full bg-protein"></span>{{ t "macro.protein" }}</span>
+        <span class="text-label-lg font-bold text-on-surface tabular">{{ .Fmt.Number .MacroShare.Protein }}%</span>
+      </div>
+      <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-surface-container-low">
+        <span class="flex items-center gap-2 text-label-lg font-semibold text-on-surface"><span class="w-2.5 h-2.5 rounded-full bg-carb"></span>{{ t "macro.carb" }}</span>
+        <span class="text-label-lg font-bold text-on-surface tabular">{{ .Fmt.Number .MacroShare.Carb }}%</span>
+      </div>
+      <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-surface-container-low">
+        <span class="flex items-center gap-2 text-label-lg font-semibold text-on-surface"><span class="w-2.5 h-2.5 rounded-full bg-fat"></span>{{ t "macro.fat" }}</span>
+        <span class="text-label-lg font-bold text-on-surface tabular">{{ .Fmt.Number .MacroShare.Fat }}%</span>
+      </div>
+    </div>
+  </section>
+
+  {{/* Weight trend. A single weigh-in has no line, so the section says so. */}}
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-md">
+    <div class="flex items-start justify-between gap-2">
+      <h3 class="text-headline-sm font-bold text-on-surface">{{ t "progresso.weight" }}</h3>
+      <span class="w-9 h-9 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center shrink-0">{{ template "icon_scale" . }}</span>
+    </div>
+
+    <div class="flex items-end gap-2">
+      <span class="text-numeric-metric tabular text-on-surface leading-none">{{ .LatestWeight }}</span>
+    </div>
+    <span class="text-body-sm text-on-surface-variant">{{ t "progresso.weight_hint" (.Fmt.Number .WeightDays) }}</span>
+
+    {{ if .HasWeight }}
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="w-full h-24" aria-hidden="true">
+      <defs>
+        <linearGradient id="weight-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgb(var(--md-primary))" stop-opacity="0.18" />
+          <stop offset="100%" stop-color="rgb(var(--md-primary))" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <polyline points="{{ .WeightPoints }}" fill="none" stroke="rgb(var(--md-primary))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
+    </svg>
+    {{ else }}
+    <p class="text-body-sm text-on-surface-variant">{{ t "progresso.weight_empty" }}</p>
+    {{ end }}
+  </section>
+
+  {{/* Export: the Stitch screen promises a PDF. Not built, so the button is a
+       disabled control with the honest reason instead of a dead link. */}}
+  <section class="flex flex-col gap-space-sm">
+    <button type="button" disabled class="inline-flex items-center justify-center gap-2 w-full min-h-[52px] rounded-full bg-surface-container text-on-surface-variant text-label-lg font-bold cursor-not-allowed opacity-70">
+      {{ t "progresso.export" }}
+    </button>
+    <p class="text-body-sm text-on-surface-variant text-center">{{ t "progresso.export_hint" }}</p>
+  </section>
+
+</div>
+{{ end }}

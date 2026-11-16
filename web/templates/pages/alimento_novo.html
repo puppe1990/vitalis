@@ -1,0 +1,78 @@
+{{ define "content" }}
+<div class="flex flex-col gap-space-md">
+
+  <div class="flex items-center gap-space-sm pt-space-xs">
+    <a href="/alimentos?meal={{ .Meal }}" class="inline-flex items-center gap-1.5 min-h-[44px] px-2 -ml-2 rounded-full text-on-surface-variant text-label-lg">{{ template "icon_back" . }}{{ t "alimentos.title" }}</a>
+  </div>
+
+  <section class="flex flex-col gap-1">
+    <h2 class="text-headline-md font-extrabold text-on-surface">{{ t "alimentos.manual" }}</h2>
+    <p class="text-body-md text-on-surface-variant">{{ t "alimentos.manual_hint" }}</p>
+  </section>
+
+  <form method="post" action="/alimentos" class="flex flex-col gap-space-md">
+    {{ csrfField .CSRFToken }}
+    <input type="hidden" name="meal" value="{{ .Meal }}" />
+
+    <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-md">
+      <div class="flex flex-col gap-1">
+        <label for="name" class="text-label-lg font-semibold text-on-surface">{{ t "alimentos.field_name" }}</label>
+        <input id="name" type="text" name="name" value="{{ .Form.Name }}" maxlength="120" required class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+        {{ with index .Errors "name" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div class="flex flex-col gap-1">
+          <label for="brand" class="text-label-lg font-semibold text-on-surface">{{ t "alimentos.field_brand" }}</label>
+          <input id="brand" type="text" name="brand" value="{{ .Form.Brand }}" maxlength="80" class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="category" class="text-label-lg font-semibold text-on-surface">{{ t "alimentos.field_category" }}</label>
+          <input id="category" type="text" name="category" value="{{ .Form.Category }}" maxlength="60" class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-md">
+      <div class="flex flex-col gap-1">
+        <span class="text-label-lg font-semibold text-on-surface">{{ t "alimentos.per_100g" }}</span>
+        <span class="text-body-sm text-on-surface-variant">{{ t "alimentos.per_100g_hint" }}</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div class="flex flex-col gap-1">
+          <label for="kcal_100g" class="text-label-sm text-on-surface-variant font-semibold">{{ t "alimentos.field_kcal" }}</label>
+          <input id="kcal_100g" type="number" name="kcal_100g" value="{{ if .Form.Per100g.Kcal }}{{ .Fmt.Number .Form.Per100g.Kcal }}{{ end }}" min="1" max="900" step="0.1" inputmode="decimal" required class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+          {{ with index .Errors "kcal_100g" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="protein_100g" class="text-label-sm text-on-surface-variant font-semibold">{{ t "macro.protein" }}</label>
+          <input id="protein_100g" type="number" name="protein_100g" value="{{ if .Form.Per100g.Protein }}{{ .Fmt.Grams .Form.Per100g.Protein }}{{ end }}" min="0" max="100" step="0.1" inputmode="decimal" class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="carb_100g" class="text-label-sm text-on-surface-variant font-semibold">{{ t "macro.carb" }}</label>
+          <input id="carb_100g" type="number" name="carb_100g" value="{{ if .Form.Per100g.Carb }}{{ .Fmt.Grams .Form.Per100g.Carb }}{{ end }}" min="0" max="100" step="0.1" inputmode="decimal" class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="fat_100g" class="text-label-sm text-on-surface-variant font-semibold">{{ t "macro.fat" }}</label>
+          <input id="fat_100g" type="number" name="fat_100g" value="{{ if .Form.Per100g.Fat }}{{ .Fmt.Grams .Form.Per100g.Fat }}{{ end }}" min="0" max="100" step="0.1" inputmode="decimal" class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div class="flex flex-col gap-1">
+          <label for="portion_label" class="text-label-sm text-on-surface-variant font-semibold">{{ t "alimentos.field_portion_label" }}</label>
+          <input id="portion_label" type="text" name="portion_label" value="{{ .Form.PortionLabel }}" maxlength="60" placeholder="1 fatia" class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="portion_grams" class="text-label-sm text-on-surface-variant font-semibold">{{ t "alimentos.field_portion_grams" }}</label>
+          <input id="portion_grams" type="number" name="portion_grams" value="{{ if .Form.PortionGrams }}{{ .Fmt.Grams .Form.PortionGrams }}{{ end }}" min="1" max="5000" step="1" inputmode="decimal" placeholder="100" class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+      </div>
+    </section>
+
+    <button type="submit" class="inline-flex items-center justify-center w-full min-h-[52px] rounded-full bg-primary text-on-primary text-label-lg font-bold vitalis-fab-shadow active:scale-[0.98] transition-transform">{{ t "alimentos.create" }}</button>
+  </form>
+
+</div>
+{{ end }}

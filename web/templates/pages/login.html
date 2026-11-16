@@ -1,0 +1,19 @@
+{{ define "content" }}
+<div class="flex min-h-[calc(100svh-11rem)] items-center justify-center py-8">
+  <div class="w-full max-w-sm rounded-xl border border-foam/10 bg-tide/40 p-6">
+    <h1 class="font-serif text-2xl font-medium text-foam">{{ t "auth.login_title" }}</h1>
+    <.form action="/login" method="post" class="mt-6 space-y-5">
+      <.input name="email" type="email" label="Email" value="{{ .Email }}" error="{{ fieldError .Errors "email" }}" />
+      <.password name="password" label="{{ t "auth.password_label" }}" error="{{ fieldError .Errors "password" }}" autocomplete="current-password" required="required" />
+      <.button type="submit" class="amarra-btn amarra-btn-primary w-full">{{ t "auth.login_submit" }}</.button>
+    </.form>
+    <div class="mt-6 space-y-2 text-center text-sm text-foam/60">
+      <p>
+        {{ t "auth.signup_prompt" }}
+        <a class="text-foam underline decoration-foam/40 underline-offset-4 hover:decoration-foam/70" href="/signup">{{ t "auth.signup_title" }}</a>
+      </p>
+      <p><a class="text-foam underline decoration-foam/40 underline-offset-4 hover:decoration-foam/70" href="/forgot-password">{{ t "auth.forgot_password" }}</a></p>
+    </div>
+  </div>
+</div>
+{{ end }}
