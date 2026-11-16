@@ -190,6 +190,33 @@ describe("log_photo", () => {
     assert.match(result.text, /9/);
     assert.match(result.text, /Almoço/);
   });
+
+  it("forwards several local paths in one call", async () => {
+    const client = fakeClient({
+      logPhoto: () => ({
+        photos: [
+          { id: 9, meal: "almoco" },
+          { id: 10, meal: "almoco" },
+        ],
+        photo: { id: 9, meal: "almoco" },
+      }),
+    });
+    const tools = createTools(client);
+
+    const result = await call(tools, "log_photo", {
+      path: ["/tmp/prato1.jpg", "/tmp/prato2.jpg"],
+      meal: "almoço",
+      date: "2026-11-16",
+    });
+
+    assert.deepEqual(client.calls[0].args, {
+      path: ["/tmp/prato1.jpg", "/tmp/prato2.jpg"],
+      meal: "almoco",
+      date: "2026-11-16",
+    });
+    assert.match(result.text, /9/);
+    assert.match(result.text, /10/);
+  });
 });
 
 describe("delete_photo", () => {

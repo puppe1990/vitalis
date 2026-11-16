@@ -50,8 +50,8 @@ func TestDiary_showsPhotoFormWhenEnabled(t *testing.T) {
 	if !strings.Contains(rr.Body.String(), `name="photo"`) {
 		t.Error("photo form missing")
 	}
-	if !strings.Contains(rr.Body.String(), `capture="environment"`) {
-		t.Error("camera capture missing")
+	if !strings.Contains(rr.Body.String(), `multiple`) {
+		t.Error("photo input missing multiple")
 	}
 	if !strings.Contains(rr.Body.String(), `enctype="multipart/form-data"`) {
 		t.Error("multipart form missing")
@@ -92,6 +92,32 @@ func TestPhotos_uploadJPEGThenServe(t *testing.T) {
 	}
 	if !bytes.Equal(serve.Body.Bytes(), jpegBody()) {
 		t.Error("served bytes differ")
+	}
+}
+
+func TestPhotos_uploadTwoJPEGsInOnePost(t *testing.T) {
+	env := newTestEnv(t)
+	lib := photos.New(env.store, photos.NewMemoryBucket())
+	h := NewPhotosHandler(lib, appi18n.NewCatalog("pt"), cais.Config{})
+
+	rr := httptest.NewRecorder()
+	h.UploadPost(rr, photoUploadRequestFiles(t, env, "almoco", []struct {
+		body     []byte
+		filename string
+	}{
+		{jpegBody(), "prato1.jpg"},
+		{jpegBody(), "prato2.jpg"},
+	}))
+	if rr.Code != http.StatusSeeOther {
+		t.Fatalf("upload status = %d, want 303. body: %s", rr.Code, rr.Body.String())
+	}
+
+	listed, err := lib.List(env.userID, resolveDay(httptest.NewRequest(http.MethodGet, "/", nil)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(listed) != 2 {
+		t.Fatalf("saved photos = %d, want 2", len(listed))
 	}
 }
 
@@ -198,17 +224,30 @@ func TestDiary_rendersSavedPhoto(t *testing.T) {
 
 func photoUploadRequest(t *testing.T, env testEnv, meal string, body []byte, filename string) *http.Request {
 	t.Helper()
+	return photoUploadRequestFiles(t, env, meal, []struct {
+		body     []byte
+		filename string
+	}{{body, filename}})
+}
+
+func photoUploadRequestFiles(t *testing.T, env testEnv, meal string, files []struct {
+	body     []byte
+	filename string
+}) *http.Request {
+	t.Helper()
 	var buf bytes.Buffer
 	mw := multipart.NewWriter(&buf)
 	if err := mw.WriteField("meal", meal); err != nil {
 		t.Fatal(err)
 	}
-	part, err := mw.CreateFormFile("photo", filename)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := io.Copy(part, bytes.NewReader(body)); err != nil {
-		t.Fatal(err)
+	for _, f := range files {
+		part, err := mw.CreateFormFile("photo", f.filename)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := io.Copy(part, bytes.NewReader(f.body)); err != nil {
+			t.Fatal(err)
+		}
 	}
 	if err := mw.Close(); err != nil {
 		t.Fatal(err)

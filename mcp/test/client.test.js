@@ -103,6 +103,36 @@ describe("VitalisClient", () => {
     assert.equal(result.photo.id, 9);
   });
 
+  it("posts several photos as repeated multipart parts", async (t) => {
+    const calls = stubFetch(t, () =>
+      jsonResponse(
+        {
+          photos: [
+            { id: 9, meal: "almoco" },
+            { id: 10, meal: "almoco" },
+          ],
+          photo: { id: 9, meal: "almoco" },
+        },
+        201
+      )
+    );
+    const client = new VitalisClient({ baseUrl: "http://localhost:4258", token: "t" });
+    const jpeg = Buffer.from([0xff, 0xd8, 0xff]);
+
+    const result = await client.logPhoto({
+      meal: "almoco",
+      date: "2026-11-16",
+      files: [
+        { filename: "prato1.jpg", body: jpeg },
+        { filename: "prato2.jpg", body: jpeg },
+      ],
+    });
+
+    assert.ok(calls[0].init.body instanceof FormData);
+    assert.equal(calls[0].init.body.getAll("photo").length, 2);
+    assert.equal(result.photos.length, 2);
+  });
+
   it("deletes a photo by id", async (t) => {
     const calls = stubFetch(t, () => new Response(null, { status: 204 }));
     const client = new VitalisClient({ baseUrl: "http://localhost:4258", token: "t" });
