@@ -174,6 +174,20 @@ describe("get_day", () => {
     assert.match(result.text, /kcal/i);
   });
 
+  it("uses the display status the dashboard shows", async () => {
+    // The API sends status_text alongside the raw band; the tool must prefer it
+    // so an MCP client never calls a day in progress a "steep deficit".
+    const payload = diary();
+    payload.balance.status = "deficit_high";
+    payload.balance.status_text = "in_progress";
+    const tools = createTools(fakeClient({ getDiary: () => payload }));
+
+    const result = await call(tools, "get_day", {});
+
+    assert.match(result.text, /andamento|progress/i);
+    assert.doesNotMatch(result.text, /acentuado|steep/i);
+  });
+
   it("mentions the meal breakdown so the agent can answer 'what did I eat'", async () => {
     const tools = createTools(fakeClient({ getDiary: () => diary() }));
 

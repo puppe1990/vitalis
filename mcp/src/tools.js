@@ -319,10 +319,11 @@ export function createTools(client) {
 
 function renderDay(day) {
   const b = day.balance;
+  const status = STATUS_LABELS[b.status_text] ?? STATUS_LABELS[b.status] ?? b.status;
   const lines = [
     `Diário de ${day.date}`,
     `Consumido: ${number(day.totals.kcal)} kcal de ${number(b.target_kcal)} kcal ` +
-      `(${number(Math.max(b.remaining_kcal, 0))} restantes · ${STATUS_LABELS[b.status] ?? b.status})`,
+      `(${number(Math.max(b.remaining_kcal, 0))} restantes · ${status})`,
     `Macros: P ${grams(day.totals.protein_g)}g / ${grams(day.target.protein_g)}g · ` +
       `C ${grams(day.totals.carb_g)}g / ${grams(day.target.carb_g)}g · ` +
       `G ${grams(day.totals.fat_g)}g / ${grams(day.target.fat_g)}g`,

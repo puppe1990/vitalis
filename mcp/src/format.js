@@ -71,6 +71,10 @@ export function normalizeMeal(raw) {
 }
 
 export const STATUS_LABELS = {
+  // Display-only buckets from nutrition.DisplayStatus. A day that has not
+  // started, or is still in progress, must not be described as a deficit.
+  not_started: "dia não iniciado",
+  in_progress: "dia em andamento",
   deficit_high: "déficit acentuado",
   deficit_moderate: "déficit moderado",
   deficit_light: "déficit leve",

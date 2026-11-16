@@ -3,6 +3,7 @@ package nutrition
 import (
 	"math"
 	"testing"
+	"time"
 )
 
 // approx compares floats with the tolerance a kcal/g display can absorb, so a
@@ -247,5 +248,31 @@ func TestWeekly_allEmptyIsZero(t *testing.T) {
 	}
 	if got.BestDay.Label != "" || got.WorstDay.Label != "" {
 		t.Errorf("empty week named a best/worst day: %q/%q", got.BestDay.Label, got.WorstDay.Label)
+	}
+}
+
+// Both the dashboard badge and the MCP server read DisplayStatus, so the day
+// cannot be "in progress" in one surface and "steep deficit" in the other.
+func TestDisplayStatus_hedgesUntilTheDayIsOver(t *testing.T) {
+	day := time.Date(2026, 11, 16, 0, 0, 0, 0, time.UTC)
+	morning := time.Date(2026, 11, 16, 9, 0, 0, 0, time.UTC)
+	late := time.Date(2026, 11, 16, 22, 0, 0, 0, time.UTC)
+
+	if got := DisplayStatus(StatusDeficitHigh, 1, day, morning); got != DisplayInProgress {
+		t.Errorf("morning = %q, want %q", got, DisplayInProgress)
+	}
+	if got := DisplayStatus(StatusDeficitHigh, 1, day, late); got != StatusDeficitHigh {
+		t.Errorf("late = %q, want %q", got, StatusDeficitHigh)
+	}
+	if got := DisplayStatus(StatusDeficitHigh, 0, day, late); got != DisplayNotStarted {
+		t.Errorf("empty = %q, want %q", got, DisplayNotStarted)
+	}
+}
+
+func TestDisplayStatus_pastDayKeepsItsBand(t *testing.T) {
+	past := time.Date(2026, 11, 10, 0, 0, 0, 0, time.UTC)
+	now := time.Date(2026, 11, 16, 9, 0, 0, 0, time.UTC)
+	if got := DisplayStatus(StatusSurplus, 2, past, now); got != StatusSurplus {
+		t.Errorf("past day = %q, want %q", got, StatusSurplus)
 	}
 }

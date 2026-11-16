@@ -114,6 +114,9 @@ func (h *Handler) diary(w http.ResponseWriter, r *http.Request) {
 			"net_kcal":       round1(balance.NetKcal),
 			"remaining_kcal": round1(balance.RemainingKcal),
 			"status":         balance.Status,
+			// status_text is the same word the dashboard badge shows, so an MCP
+			// client describes the day exactly like the UI does.
+			"status_text": nutrition.DisplayStatus(balance.Status, len(entries), day, time.Now()),
 		},
 		"water": map[string]float64{
 			"drunk_ml":  dayLog.WaterML,

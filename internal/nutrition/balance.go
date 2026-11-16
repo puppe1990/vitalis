@@ -1,5 +1,7 @@
 package nutrition
 
+import "time"
+
 // BalanceStatus is the encouraging, non-clinical label the dashboard badge
 // shows. It derives from the deficit band, never from a diagnosis.
 const (
@@ -68,6 +70,40 @@ func deficitStatus(deficit float64) string {
 	default:
 		return StatusSurplus
 	}
+}
+
+// Display statuses are the display-only buckets that sit on top of the deficit
+// bands: a day that has not started, and a day still in progress, are neither.
+const (
+	DisplayNotStarted = "not_started"
+	DisplayInProgress = "in_progress"
+)
+
+// DayEndHour is when the app stops hedging and reports the real band. 21h
+// leaves room for a light dinner to still close the day.
+const DayEndHour = 21
+
+// DisplayStatus is what the badge shows. A deficit is only meaningful once the
+// day is over: at 10am with 200 kcal logged the app is 1400 kcal "short", but
+// the honest label is "day in progress", not an alarm.
+//
+// It lives here rather than in a handler so the web page, /api/v1 and the MCP
+// server all render the same word for the same state.
+func DisplayStatus(band string, entryCount int, day, now time.Time) string {
+	if entryCount == 0 {
+		return DisplayNotStarted
+	}
+	if sameDay(day, now) && now.Hour() < DayEndHour {
+		return DisplayInProgress
+	}
+	return band
+}
+
+// sameDay compares calendar days, ignoring the clock and the location offset.
+func sameDay(a, b time.Time) bool {
+	ay, am, ad := a.Date()
+	by, bm, bd := b.Date()
+	return ay == by && am == bm && ad == bd
 }
 
 // GlassML is the quick-add glass size. 250 ml is the Brazilian household cup

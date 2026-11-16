@@ -200,25 +200,10 @@ func nutrientsOf(entries []models.Entry) []nutrition.Nutrients {
 	return out
 }
 
-// statusKey decides which badge the hero card shows.
-//
-// A deficit is only meaningful once the day is over: at 10am with 200 kcal
-// logged the app is 1400 kcal "short", but the honest label is "em andamento".
-// The wall-clock check (and the empty-day check) keeps the badge from reading
-// as an alarm about a day the user is still living.
+// statusKey maps the shared display status to the i18n key of the badge.
 func statusKey(status string, entryCount int, day time.Time, now time.Time) string {
-	if entryCount == 0 {
-		return "diario.status.not_started"
-	}
-	if day.Equal(dayOf(now)) && now.Hour() < dayEndHour {
-		return "diario.status.in_progress"
-	}
-	return "diario.status." + status
+	return "diario.status." + nutrition.DisplayStatus(status, entryCount, day, now)
 }
-
-// dayEndHour is when the app stops hedging and reports the real band. 21h gives
-// the user time to still close the day with a light meal.
-const dayEndHour = 21
 
 // mealIcon maps a slot to the icon key the template renders.
 func mealIcon(m nutrition.Meal) string {
