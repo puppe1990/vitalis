@@ -270,6 +270,54 @@ func TestSettings_offersSignOut(t *testing.T) {
 	}
 }
 
+// The password form lives on /settings; it has to be one tap from the tab bar,
+// not buried behind the avatar → metas path.
+func TestLayout_footerLinksToSettingsAndCentersFAB(t *testing.T) {
+	env := newTestEnv(t)
+	h := newPageHandlers(t, env, "pt")
+
+	req := signedIn(t, env, http.MethodGet, "/diario")
+	rr := httptest.NewRecorder()
+	h.diary.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d", rr.Code)
+	}
+
+	navAt := strings.Index(rr.Body.String(), `amarra-hook="nav"`)
+	if navAt < 0 {
+		t.Fatal("footer nav missing")
+	}
+	nav := rr.Body.String()[navAt:]
+	if !strings.Contains(nav, `href="/settings"`) {
+		t.Error("footer missing /settings")
+	}
+	if !strings.Contains(nav, "Ajustes") {
+		t.Error("footer missing settings label")
+	}
+
+	fab := strings.Index(nav, `aria-label="Registrar"`)
+	if fab < 0 {
+		t.Fatal("registrar FAB missing")
+	}
+	open := strings.LastIndex(nav[:fab], "<a ")
+	if open < 0 {
+		t.Fatal("registrar <a> missing")
+	}
+	wrap := strings.LastIndex(nav[:open], "<div")
+	if wrap < 0 {
+		t.Fatal("FAB wrapper missing")
+	}
+	slot := nav[wrap:open]
+	end := strings.Index(slot, ">")
+	if end < 0 {
+		t.Fatal("FAB wrapper unclosed")
+	}
+	class := slot[:end]
+	if !strings.Contains(class, "flex-1") || !strings.Contains(class, "justify-center") {
+		t.Error("registrar FAB is not in a centered flex-1 slot")
+	}
+}
+
 // The account page must be reachable from the goal page, otherwise a user can
 // never reach the password form or the sign-out button.
 func TestMetas_linksToAccountPage(t *testing.T) {

@@ -55,6 +55,7 @@ var enMessages = map[string]string{
 	"nav.alimentos": "Foods",
 	"nav.registrar": "Log",
 	"nav.progresso": "Progress",
+	"nav.settings":  "Settings",
 
 	"diario.title":                   "Diary",
 	"diario.today":                   "Today, %s",
