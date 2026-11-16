@@ -1,5 +1,7 @@
 package handlers
 
+import "time"
+
 // monthsPT is the Portuguese month list used by the diary header and the
 // weekly range. Go's time package only formats English month names from a
 // layout, and the app ships Portuguese copy, so the list lives here.
@@ -28,4 +30,10 @@ func shortDatePT(dayOfMonth, month int) string {
 		name = name[:3]
 	}
 	return itoa(int64(dayOfMonth)) + " " + name
+}
+
+// dayOf truncates a timestamp to its calendar day, using the same convention as
+// resolveDay so "today" compares equal no matter where it came from.
+func dayOf(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
 }

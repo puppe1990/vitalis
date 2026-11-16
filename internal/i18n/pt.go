@@ -31,7 +31,7 @@ var ptMessages = map[string]string{
 	"settings.current_password":         "Senha atual",
 	"settings.current_password_invalid": "A senha atual está incorreta.",
 
-	"home.title":         "Página Inicial",
+	"home.title":         "Vitalis",
 	"home.hero_heading":  "%s está no ar",
 	"home.tagline":       "Mini app Go com Amarra, Tailwind e SQLite.",
 	"home.cta_open":      "Abrir o painel",
@@ -209,4 +209,5 @@ var ptMessages = map[string]string{
 	"home.feature_mcp_body":         "Um token de API libera o servidor MCP: registre refeições e leia o diário pelo seu agente.",
 	"diario.status.not_started":     "Dia não iniciado",
 	"alimentos.browse":              "Buscar na base",
+	"diario.status.in_progress":     "Dia em andamento",
 }

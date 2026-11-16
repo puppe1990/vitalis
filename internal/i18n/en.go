@@ -31,7 +31,7 @@ var enMessages = map[string]string{
 	"settings.current_password":         "Current password",
 	"settings.current_password_invalid": "Current password is incorrect.",
 
-	"home.title":         "Home",
+	"home.title":         "Vitalis",
 	"home.hero_heading":  "%s is running",
 	"home.tagline":       "Mini Go app with Amarra, Tailwind, and SQLite.",
 	"home.cta_open":      "Open the dashboard",
@@ -209,4 +209,5 @@ var enMessages = map[string]string{
 	"home.feature_mcp_body":         "An API token unlocks the MCP server: log meals and read your diary through your agent.",
 	"diario.status.not_started":     "Day not started",
 	"alimentos.browse":              "Search the base",
+	"diario.status.in_progress":     "Day in progress",
 }

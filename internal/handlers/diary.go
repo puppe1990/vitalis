@@ -64,7 +64,7 @@ func (h *DiaryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"TargetLabel": formatNumber(goal.TargetKcal),
 		"WaterLabel":  formatML(dayLog.WaterML),
 		"WaterTarget": formatML(goal.WaterML),
-		"StatusKey":   statusKey(dayView.Balance.Status, dayView.MealCount),
+		"StatusKey":   statusKey(dayView.Balance.Status, dayView.MealCount, day, time.Now()),
 		"AddWaterURL": dayPath("/diario/agua", day),
 		"RingOffset":  Fmt{}.RingOffset(nutrition.ProgressRatio(dayView.Total.Kcal, goal.TargetKcal)),
 		"FoodsURL":    "/alimentos",

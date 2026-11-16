@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"testing"
+	"time"
 
 	"github.com/puppe1990/vitalis/internal/models"
 	"github.com/puppe1990/vitalis/internal/nutrition"
@@ -156,5 +157,36 @@ func TestFormatML_switchesToLitresAt1000(t *testing.T) {
 		if got := formatML(in); got != want {
 			t.Errorf("formatML(%v) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+// The badge must not call a day still in progress a "steep deficit": at 10am
+// with 248 kcal logged the app is 1753 kcal short, which is normal, not alarming.
+func TestStatusKey_defersTheBandUntilTheDayIsOver(t *testing.T) {
+	day := testdata.Day(2026, 11, 16)
+	midMorning := time.Date(2026, 11, 16, 10, 0, 0, 0, time.UTC)
+	lateEvening := time.Date(2026, 11, 16, 22, 0, 0, 0, time.UTC)
+
+	if got := statusKey(nutrition.StatusDeficitHigh, 1, day, midMorning); got != "diario.status.in_progress" {
+		t.Errorf("mid-day status = %q, want in_progress", got)
+	}
+	if got := statusKey(nutrition.StatusDeficitHigh, 1, day, lateEvening); got != "diario.status.deficit_high" {
+		t.Errorf("late status = %q, want deficit_high", got)
+	}
+}
+
+func TestStatusKey_reportsTheBandForAPastDay(t *testing.T) {
+	past := testdata.Day(2026, 11, 10)
+	now := time.Date(2026, 11, 16, 9, 0, 0, 0, time.UTC)
+	if got := statusKey(nutrition.StatusSurplus, 3, past, now); got != "diario.status.surplus" {
+		t.Errorf("past day status = %q, want surplus", got)
+	}
+}
+
+func TestStatusKey_emptyDayIsNotStarted(t *testing.T) {
+	day := testdata.Day(2026, 11, 16)
+	now := time.Date(2026, 11, 16, 23, 0, 0, 0, time.UTC)
+	if got := statusKey(nutrition.StatusDeficitModerate, 0, day, now); got != "diario.status.not_started" {
+		t.Errorf("empty day status = %q, want not_started", got)
 	}
 }
