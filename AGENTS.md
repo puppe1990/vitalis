@@ -35,21 +35,22 @@ The food catalog (`internal/store/seed_foods.go`) is content, not demo data: `db
 
 ## Layout
 
-| Path                        | Responsibility                 |
-| --------------------------- | ------------------------------ |
-| `cmd/server/`               | Entry point                    |
-| `internal/app/`             | Bootstrap, `registerRoutes`    |
-| `internal/handlers/`        | HTTP handlers (`view.Write`)   |
-| `internal/store/`           | SQLite + migrations            |
-| `internal/nutrition/`       | pure nutrition math (no IO)    |
-| `internal/api/`             | JSON `/api/v1` (Bearer token)  |
-| `internal/testdata/`        | gofakeit fixtures              |
-| `mcp/`                      | MCP server (Node, stdio)       |
-| `internal/models/`          | Row structs (SQL columns)      |
-| `web/templates/layouts/`    | Amarra layout (`#amarra-main`) |
-| `web/templates/pages/`      | HTML pages                     |
-| `web/templates/components/` | App component overrides        |
-| `web/static/`               | CSS, `amarra.js`, PWA          |
+| Path                        | Responsibility                  |
+| --------------------------- | ------------------------------- |
+| `cmd/server/`               | Entry point                     |
+| `internal/app/`             | Bootstrap, `registerRoutes`     |
+| `internal/handlers/`        | HTTP handlers (`view.Write`)    |
+| `internal/store/`           | SQLite + migrations             |
+| `internal/nutrition/`       | pure nutrition math (no IO)     |
+| `internal/photos/`          | meal photos (B2 + MemoryBucket) |
+| `internal/api/`             | JSON `/api/v1` (Bearer token)   |
+| `internal/testdata/`        | gofakeit fixtures               |
+| `mcp/`                      | MCP server (Node, stdio)        |
+| `internal/models/`          | Row structs (SQL columns)       |
+| `web/templates/layouts/`    | Amarra layout (`#amarra-main`)  |
+| `web/templates/pages/`      | HTML pages                      |
+| `web/templates/components/` | App component overrides         |
+| `web/static/`               | CSS, `amarra.js`, PWA           |
 
 Patch markers (do not remove): `registerRoutes`, `Close() error`, `<!-- cais:nav -->`, `// cais:live-views`.
 

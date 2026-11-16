@@ -25,7 +25,9 @@ function fakeClient(overrides = {}) {
     getFood: record("getFood"),
     createFood: record("createFood"),
     logEntry: record("logEntry"),
+    logPhoto: record("logPhoto"),
     deleteEntry: record("deleteEntry"),
+    deletePhoto: record("deletePhoto"),
     addWater: record("addWater"),
     getGoal: record("getGoal"),
     saveGoal: record("saveGoal"),
@@ -51,12 +53,14 @@ describe("tool registry", () => {
       "add_water",
       "create_food",
       "delete_entry",
+      "delete_photo",
       "get_day",
       "get_food",
       "get_goal",
       "get_progress",
       "list_weight",
       "log_meal",
+      "log_photo",
       "save_goal",
       "save_weight",
       "search_foods",
@@ -162,6 +166,41 @@ describe("log_meal", () => {
       /meal/i
     );
     assert.equal(client.calls.length, 0);
+  });
+});
+
+describe("log_photo", () => {
+  it("forwards the local path, meal and date", async () => {
+    const client = fakeClient({
+      logPhoto: () => ({ photo: { id: 9, meal: "almoco", content_type: "image/jpeg" } }),
+    });
+    const tools = createTools(client);
+
+    const result = await call(tools, "log_photo", {
+      path: "/tmp/prato.jpg",
+      meal: "almoço",
+      date: "2026-11-16",
+    });
+
+    assert.deepEqual(client.calls[0].args, {
+      path: "/tmp/prato.jpg",
+      meal: "almoco",
+      date: "2026-11-16",
+    });
+    assert.match(result.text, /9/);
+    assert.match(result.text, /Almoço/);
+  });
+});
+
+describe("delete_photo", () => {
+  it("forwards the photo id", async () => {
+    const client = fakeClient();
+    const tools = createTools(client);
+
+    const result = await call(tools, "delete_photo", { id: 9 });
+
+    assert.deepEqual(client.calls[0].args, { id: 9 });
+    assert.match(result.text, /9/);
   });
 });
 

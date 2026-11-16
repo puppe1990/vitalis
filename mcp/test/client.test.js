@@ -85,6 +85,35 @@ describe("VitalisClient", () => {
     assert.equal(result.entry.food_id, 7);
   });
 
+  it("posts a photo as multipart without a JSON content type", async (t) => {
+    const calls = stubFetch(t, () => jsonResponse({ photo: { id: 9, meal: "almoco" } }, 201));
+    const client = new VitalisClient({ baseUrl: "http://localhost:4258", token: "t" });
+
+    const result = await client.logPhoto({
+      meal: "almoco",
+      date: "2026-11-16",
+      filename: "prato.jpg",
+      body: Buffer.from([0xff, 0xd8, 0xff]),
+    });
+
+    assert.equal(calls[0].init.method, "POST");
+    assert.equal(calls[0].init.headers["Content-Type"], undefined);
+    assert.ok(calls[0].init.body instanceof FormData);
+    assert.match(calls[0].url, /\/api\/v1\/photos\?d=2026-11-16$/);
+    assert.equal(result.photo.id, 9);
+  });
+
+  it("deletes a photo by id", async (t) => {
+    const calls = stubFetch(t, () => new Response(null, { status: 204 }));
+    const client = new VitalisClient({ baseUrl: "http://localhost:4258", token: "t" });
+
+    const result = await client.deletePhoto({ id: 9 });
+
+    assert.equal(calls[0].init.method, "DELETE");
+    assert.match(calls[0].url, /\/api\/v1\/photos\/9$/);
+    assert.equal(result, null);
+  });
+
   it("omits an undefined date instead of sending null", async (t) => {
     const calls = stubFetch(t, () => jsonResponse({ entry: entry() }, 201));
     const client = new VitalisClient({ baseUrl: "http://localhost:4258", token: "t" });

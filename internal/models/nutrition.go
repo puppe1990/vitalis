@@ -96,3 +96,17 @@ type Weight struct {
 	LoggedOn time.Time
 	KG       float64
 }
+
+// MealPhoto is one plate photo attached to a meal on a day. The file lives in
+// Backblaze B2 under B2Key; SQLite only stores the index the diary needs to
+// list and authorize a download.
+type MealPhoto struct {
+	ID          int64
+	UserID      int64
+	Meal        nutrition.Meal
+	LoggedOn    time.Time
+	B2Key       string
+	ContentType string
+	ByteSize    int64
+	CreatedAt   time.Time
+}

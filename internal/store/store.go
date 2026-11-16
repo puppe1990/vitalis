@@ -51,6 +51,11 @@ type Store interface {
 	SaveWeight(userID int64, day time.Time, kg float64) error
 	ListWeights(userID int64, limit int) ([]models.Weight, error)
 
+	CreateMealPhoto(p models.MealPhoto) (int64, error)
+	ListMealPhotos(userID int64, day time.Time) ([]models.MealPhoto, error)
+	FindMealPhoto(userID, id int64) (models.MealPhoto, error)
+	DeleteMealPhoto(userID, id int64) error
+
 	CreateAPIToken(userID int64, label string) (string, error)
 	FindUserIDByAPIToken(plain string) (int64, bool)
 	ListAPITokens(userID int64) ([]models.APIToken, error)

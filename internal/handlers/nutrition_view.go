@@ -86,12 +86,20 @@ func formatML(v float64) string {
 	return formatGrams(litres) + "L"
 }
 
+// PhotoView is one plate thumbnail on a meal card.
+type PhotoView struct {
+	ID        int64
+	URL       string
+	DeleteURL string
+}
+
 // MealView is one meal card on the diary.
 type MealView struct {
 	Meal     nutrition.Meal
 	Label    string
 	Icon     string
 	Entries  []models.Entry
+	Photos   []PhotoView
 	Kcal     float64
 	HasItems bool
 	AddURL   string

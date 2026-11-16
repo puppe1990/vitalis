@@ -19,6 +19,8 @@ import (
 	"github.com/puppe1990/vitalis/internal/app"
 	"github.com/puppe1990/vitalis/internal/db"
 	appi18n "github.com/puppe1990/vitalis/internal/i18n"
+	"github.com/puppe1990/vitalis/internal/photos"
+	"github.com/puppe1990/vitalis/internal/photos/b2"
 	"github.com/puppe1990/vitalis/internal/store"
 	"github.com/puppe1990/vitalis/web"
 )
@@ -90,6 +92,14 @@ func bootstrapWithConfig(ctx context.Context, cfg cais.Config) (*app.App, error)
 	// The starter food catalog is content every user needs, so it is seeded on
 	// every boot. SeedFoods upserts on name and re-running it is a no-op.
 	db.RunBootSeeds(s)
+
+	bucket, err := b2.FromEnv()
+	if err != nil {
+		_ = s.Close()
+		return nil, fmt.Errorf("photos: %w", err)
+	}
+	photoLib := photos.New(s, bucket)
+
 	if cfg.Env == "development" {
 		if token, tokenErr := s.EnsureDemoAPIToken(); tokenErr != nil {
 			log.Printf("demo api token: %v", tokenErr)
@@ -107,6 +117,7 @@ func bootstrapWithConfig(ctx context.Context, cfg cais.Config) (*app.App, error)
 	return app.New(cfg, app.Deps{
 		Views:     views,
 		Store:     s,
+		Photos:    photoLib,
 		StaticDir: staticDir,
 		Site:      meta.SiteFrom("vitalis", cfg.AppURL),
 		Catalog:   catalog,
