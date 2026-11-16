@@ -1,5 +1,5 @@
 {{ define "content" }}
-<div class="min-h-[calc(100svh-2rem)] flex flex-col gap-space-xl py-space-lg">
+<div class="min-h-[calc(100svh-2rem)] flex flex-col gap-space-xl py-space-lg px-margin-mobile">
 
   <header class="flex items-center justify-between gap-space-sm">
     <div class="flex items-center gap-space-sm">
@@ -24,6 +24,14 @@
 
     <h1 class="text-headline-xl-mobile font-extrabold text-on-surface tracking-tight max-w-sm">{{ t "home.hero_title" }}</h1>
     <p class="text-body-lg text-on-surface-variant max-w-sm">{{ t "home.hero_body" }}</p>
+  </section>
+
+  <section id="calculadora" class="flex flex-col gap-space-sm">
+    <div class="flex flex-col gap-1">
+      <h2 class="text-headline-md font-extrabold text-on-surface">{{ t "calc.title" }}</h2>
+      <p class="text-body-md text-on-surface-variant">{{ t "calc.body" }}</p>
+    </div>
+    {{ template "calc_form" . }}
   </section>
 
   <section class="flex flex-col gap-space-sm">

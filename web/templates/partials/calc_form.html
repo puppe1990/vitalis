@@ -1,0 +1,42 @@
+{{ define "calc_form" }}
+<form method="post" action="/calculadora" class="flex flex-col gap-space-md">
+  {{ csrfField .CSRFToken }}
+
+  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-md">
+    <div class="flex flex-col gap-1.5">
+      <span class="text-label-lg font-semibold text-on-surface">{{ t "goals.sex" }}</span>
+      <div class="grid grid-cols-2 gap-2">
+        <label class="flex items-center justify-center px-3 py-2.5 rounded-xl cursor-pointer {{ if eq .Profile.Sex "female" }}bg-secondary-container/60 text-on-secondary-container{{ else }}bg-surface-container-low text-on-surface{{ end }}">
+          <input type="radio" name="sex" value="female" class="sr-only" {{ if eq .Profile.Sex "female" }}checked{{ end }} required />
+          <span class="text-label-lg font-semibold">{{ t "goals.female" }}</span>
+        </label>
+        <label class="flex items-center justify-center px-3 py-2.5 rounded-xl cursor-pointer {{ if eq .Profile.Sex "male" }}bg-secondary-container/60 text-on-secondary-container{{ else }}bg-surface-container-low text-on-surface{{ end }}">
+          <input type="radio" name="sex" value="male" class="sr-only" {{ if eq .Profile.Sex "male" }}checked{{ end }} />
+          <span class="text-label-lg font-semibold">{{ t "goals.male" }}</span>
+        </label>
+      </div>
+      {{ with index .Errors "sex" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+    </div>
+
+    <div class="grid grid-cols-3 gap-2">
+      <div class="flex flex-col gap-1">
+        <label for="age_years" class="text-label-lg font-semibold text-on-surface">{{ t "goals.age" }}</label>
+        <input id="age_years" type="number" name="age_years" value="{{ if .Profile.AgeYears }}{{ .Profile.AgeYears }}{{ end }}" min="14" max="100" inputmode="numeric" required class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+        {{ with index .Errors "age_years" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="height_cm" class="text-label-lg font-semibold text-on-surface">{{ t "goals.height" }}</label>
+        <input id="height_cm" type="number" name="height_cm" value="{{ if .Profile.HeightCM }}{{ .Fmt.Number .Profile.HeightCM }}{{ end }}" min="120" max="230" step="0.1" inputmode="decimal" required class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+        {{ with index .Errors "height_cm" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="weight_kg" class="text-label-lg font-semibold text-on-surface">{{ t "goals.weight" }}</label>
+        <input id="weight_kg" type="number" name="weight_kg" value="{{ if .Profile.WeightKG }}{{ .Fmt.Grams .Profile.WeightKG }}{{ end }}" min="35" max="300" step="0.1" inputmode="decimal" required class="min-h-[48px] rounded-xl bg-surface-container-low px-3 text-body-md text-on-surface border-0 outline-none focus:ring-2 focus:ring-primary" />
+        {{ with index .Errors "weight_kg" }}<span class="text-body-sm text-danger">{{ . }}</span>{{ end }}
+      </div>
+    </div>
+  </section>
+
+  <button type="submit" class="inline-flex items-center justify-center w-full min-h-[52px] rounded-full bg-primary text-on-primary text-label-lg font-bold vitalis-fab-shadow active:scale-[0.98] transition-transform">{{ t "calc.submit" }}</button>
+</form>
+{{ end }}

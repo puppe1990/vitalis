@@ -228,4 +228,13 @@ var enMessages = map[string]string{
 	"goals.manual_target":           "Pinned target (kcal)",
 	"goals.manual_hint":             "Leave blank to calculate from the formula. A number here wins.",
 	"goals.manual_badge":            "Target set by you",
+	"calc.title":                    "Calorie calculator",
+	"calc.body":                     "Fill in weight, height, age and sex. The math is Mifflin-St Jeor.",
+	"calc.submit":                   "Calculate calories",
+	"calc.bmr":                      "Basal metabolism",
+	"calc.maintain":                 "To maintain weight",
+	"calc.bands":                    "Burn by activity level",
+	"calc.formula":                  "Estimate at a moderate activity level. You can change the level and the goal in the diary.",
+	"calc.cta_signup":               "Create an account to use this in the diary",
+	"calc.cta_save":                 "Adjust and save as your goal",
 }

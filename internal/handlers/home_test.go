@@ -132,3 +132,23 @@ func TestHomeHandler_anonymousHidesAppChrome(t *testing.T) {
 		t.Error("guest page must not link to the diary")
 	}
 }
+
+// Guests fill weight, height, age and sex on the landing page; the form posts
+// to /calculadora so the result has its own URL.
+func TestHomeHandler_offersCalorieCalculator(t *testing.T) {
+	h := newHomeHandler(t)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	body := rr.Body.String()
+	if !strings.Contains(body, `action="/calculadora"`) {
+		t.Error("landing page must post the calorie calculator to /calculadora")
+	}
+	for _, want := range []string{`name="weight_kg"`, `name="height_cm"`, `name="age_years"`, `name="sex"`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("landing calculator missing %q", want)
+		}
+	}
+}

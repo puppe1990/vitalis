@@ -228,4 +228,13 @@ var ptMessages = map[string]string{
 	"goals.manual_target":           "Meta fixa (kcal)",
 	"goals.manual_hint":             "Deixe em branco para calcular pela fórmula. Preenchendo, esse número manda.",
 	"goals.manual_badge":            "Meta definida por você",
+	"calc.title":                    "Calculadora de calorias",
+	"calc.body":                     "Preencha peso, altura, idade e sexo. A conta usa Mifflin-St Jeor.",
+	"calc.submit":                   "Calcular calorias",
+	"calc.bmr":                      "Metabolismo basal",
+	"calc.maintain":                 "Para manter o peso",
+	"calc.bands":                    "Gasto por nível de atividade",
+	"calc.formula":                  "Estimativa com atividade moderada. No diário você ajusta o nível e o objetivo.",
+	"calc.cta_signup":               "Criar conta para usar no diário",
+	"calc.cta_save":                 "Ajustar e salvar como meta",
 }
