@@ -17,6 +17,33 @@ func jpegBytes() []byte {
 	return []byte{0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 'J', 'F', 'I', 'F'}
 }
 
+func TestAppendB2ImgSrc(t *testing.T) {
+	if got := AppendB2ImgSrc(""); got != "https://*.backblazeb2.com" {
+		t.Errorf("empty = %q", got)
+	}
+	if got := AppendB2ImgSrc("https://cdn.example"); !strings.Contains(got, "https://cdn.example") || !strings.Contains(got, "backblazeb2.com") {
+		t.Errorf("merge = %q", got)
+	}
+	twice := AppendB2ImgSrc(AppendB2ImgSrc(""))
+	if strings.Count(twice, "backblazeb2.com") != 1 {
+		t.Errorf("idempotent = %q", twice)
+	}
+}
+
+func TestMemoryBucket_PublicURL(t *testing.T) {
+	key := "users/2/2026-11-16/lanche/af29d6b4d922cef42282091c942caaa0.jpg"
+	got := NewMemoryBucket().PublicURL(key)
+	if !strings.HasPrefix(got, "https://") {
+		t.Fatalf("PublicURL = %q, want https", got)
+	}
+	if !strings.Contains(got, "/file/") {
+		t.Errorf("PublicURL = %q, want a native B2 /file/ path", got)
+	}
+	if !strings.HasSuffix(got, "/"+key) {
+		t.Errorf("PublicURL = %q, want suffix /%s", got, key)
+	}
+}
+
 func TestLibrary_EnabledWhenBucketIsSet(t *testing.T) {
 	if New(nil, nil).Enabled() {
 		t.Error("nil bucket must disable the feature")

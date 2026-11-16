@@ -75,6 +75,14 @@ func FromEnv() (photos.Bucket, error) {
 	return New(Config{KeyID: id, AppKey: key, Bucket: bucket, Endpoint: endpoint}), nil
 }
 
+func (c *Client) PublicURL(key string) string {
+	sess, err := c.session(context.Background())
+	if err != nil {
+		return ""
+	}
+	return sess.downloadURL + "/file/" + url.PathEscape(sess.bucketName) + "/" + encodePath(key)
+}
+
 func (c *Client) Put(ctx context.Context, key string, body io.Reader, size int64, contentType string) error {
 	sess, err := c.session(ctx)
 	if err != nil {

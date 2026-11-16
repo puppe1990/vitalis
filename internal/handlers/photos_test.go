@@ -202,7 +202,8 @@ func TestPhotos_deleteRemovesFile(t *testing.T) {
 
 func TestDiary_rendersSavedPhoto(t *testing.T) {
 	env := newTestEnv(t)
-	lib := photos.New(env.store, photos.NewMemoryBucket())
+	bucket := photos.NewMemoryBucket()
+	lib := photos.New(env.store, bucket)
 	day := resolveDay(httptest.NewRequest(http.MethodGet, "/", nil))
 	photo, err := lib.Save(context.Background(), photos.SaveInput{
 		UserID: env.userID, Meal: nutrition.MealLunch, LoggedOn: day, Body: jpegBody(),
@@ -216,9 +217,13 @@ func TestDiary_rendersSavedPhoto(t *testing.T) {
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
 
-	want := `/diario/fotos/` + itoa(photo.ID)
-	if !strings.Contains(rr.Body.String(), want) {
-		t.Errorf("diary missing photo url %s", want)
+	body := rr.Body.String()
+	want := bucket.PublicURL(photo.B2Key)
+	if !strings.Contains(body, `src="`+want+`"`) {
+		t.Errorf("diary <img> missing B2 url %s", want)
+	}
+	if strings.Contains(body, `src="/diario/fotos/`+itoa(photo.ID)+`"`) {
+		t.Error("diary <img> still points at the app proxy")
 	}
 }
 
