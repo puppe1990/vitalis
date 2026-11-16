@@ -107,12 +107,21 @@
     <button type="submit" class="inline-flex items-center justify-center w-full min-h-[52px] rounded-full bg-primary text-on-primary text-label-lg font-bold vitalis-fab-shadow active:scale-[0.98] transition-transform">{{ t "goals.submit" }}</button>
   </form>
 
-  <section class="bg-surface-container-lowest rounded-2xl p-5 vitalis-card flex flex-col gap-space-sm">
-    <div class="flex items-center justify-between gap-2">
-      <h3 class="text-headline-sm font-bold text-on-surface">{{ t "settings.api_title" }}</h3>
-      <a href="/settings/api" class="text-label-lg font-bold text-primary min-h-[44px] inline-flex items-center">{{ t "settings.api_create" }} →</a>
-    </div>
-    <p class="text-body-sm text-on-surface-variant">{{ t "settings.api_help" }}</p>
+  <section class="bg-surface-container-lowest rounded-2xl vitalis-card divide-y divide-surface-container-low">
+    <a href="/settings/api" class="flex items-center justify-between gap-2 p-4 min-h-[56px]">
+      <span class="flex flex-col min-w-0">
+        <span class="text-label-lg font-bold text-on-surface">{{ t "settings.api_title" }}</span>
+        <span class="text-body-sm text-on-surface-variant">{{ t "settings.api_short" }}</span>
+      </span>
+      <span class="text-primary shrink-0">{{ template "icon_chevron_right" . }}</span>
+    </a>
+    <a href="/settings" class="flex items-center justify-between gap-2 p-4 min-h-[56px]">
+      <span class="flex flex-col min-w-0">
+        <span class="text-label-lg font-bold text-on-surface">{{ t "settings.title" }}</span>
+        <span class="text-body-sm text-on-surface-variant">{{ t "settings.account_short" }}</span>
+      </span>
+      <span class="text-primary shrink-0">{{ template "icon_chevron_right" . }}</span>
+    </a>
   </section>
 
 </div>

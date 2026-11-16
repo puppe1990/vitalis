@@ -210,4 +210,8 @@ var enMessages = map[string]string{
 	"diario.status.not_started":     "Day not started",
 	"alimentos.browse":              "Search the base",
 	"diario.status.in_progress":     "Day in progress",
+	"settings.account_help":         "Change your password or sign out.",
+	"settings.account_short":        "Password and sign out",
+	"settings.api_short":            "Token for the MCP server",
+	"progresso.empty_week":          "No meals logged this week.",
 }

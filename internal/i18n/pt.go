@@ -210,4 +210,8 @@ var ptMessages = map[string]string{
 	"diario.status.not_started":     "Dia não iniciado",
 	"alimentos.browse":              "Buscar na base",
 	"diario.status.in_progress":     "Dia em andamento",
+	"settings.account_help":         "Troque a senha ou saia da conta.",
+	"settings.account_short":        "Senha e sair",
+	"settings.api_short":            "Token para o servidor MCP",
+	"progresso.empty_week":          "Nenhuma refeição registrada nesta semana.",
 }

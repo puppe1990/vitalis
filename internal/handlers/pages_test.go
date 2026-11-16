@@ -107,6 +107,7 @@ func renderEveryPage(t *testing.T, env testEnv, locale string) {
 		{"progresso", h.progress.ServeHTTP, "/progresso", "weight-fill"},
 		{"metas", h.goals.Show, "/metas", `name="age_years"`},
 		{"api_tokens", h.tokens.Show, "/settings/api", `name="label"`},
+		{"settings", h.auth.Settings, "/settings", `action="/logout"`},
 	}
 
 	for _, tc := range cases {
@@ -175,6 +176,7 @@ func TestPages_alimentoUsesPathValue(t *testing.T) {
 }
 
 type pageHandlers struct {
+	auth     *AuthHandler
 	diary    *DiaryHandler
 	foods    *FoodsHandler
 	progress *ProgressHandler
@@ -188,6 +190,7 @@ func newPageHandlers(t *testing.T, env testEnv, locale string) pageHandlers {
 	views := setupTestViewsFor(t, locale)
 	cfg := cais.Config{}
 	return pageHandlers{
+		auth:     NewAuthHandler(views, env.store, testSite(), env.store.Sessions(), cfg, catalog),
 		diary:    NewDiaryHandler(views, env.store, testSite(), catalog, cfg),
 		foods:    NewFoodsHandler(views, env.store, testSite(), catalog, cfg),
 		progress: NewProgressHandler(views, env.store, testSite(), catalog, cfg),
@@ -242,4 +245,72 @@ func formatMismatch(body string) string {
 func firstLines(body string) string {
 	lines := strings.SplitN(strings.TrimSpace(body), "\n", 6)
 	return strings.Join(lines, "\n")
+}
+
+// A user must be able to leave the app. The layout has no sign-out control, so
+// the account page is the only place that offers it — and it did not before.
+func TestSettings_offersSignOut(t *testing.T) {
+	env := newTestEnv(t)
+	h := newPageHandlers(t, env, "pt")
+
+	req := signedIn(t, env, http.MethodGet, "/settings")
+	rr := httptest.NewRecorder()
+	h.auth.Settings(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rr.Code)
+	}
+	body := rr.Body.String()
+	if !strings.Contains(body, `action="/logout"`) {
+		t.Error("settings page has no sign-out form")
+	}
+	if !strings.Contains(body, `method="post"`) {
+		t.Error("sign out must be a POST")
+	}
+}
+
+// The account page must be reachable from the goal page, otherwise a user can
+// never reach the password form or the sign-out button.
+func TestMetas_linksToAccountPage(t *testing.T) {
+	env := newTestEnv(t)
+	h := newPageHandlers(t, env, "pt")
+
+	req := signedIn(t, env, http.MethodGet, "/metas")
+	rr := httptest.NewRecorder()
+	h.goals.Show(rr, req)
+
+	if !strings.Contains(rr.Body.String(), `href="/settings"`) {
+		t.Error("metas page does not link to /settings")
+	}
+}
+
+// An untouched week has no peak day; the card must say so instead of printing
+// "Pico da semana: (0 kcal)" with an empty label.
+func TestProgresso_emptyWeekHasNoPeakRow(t *testing.T) {
+	env := newTestEnv(t)
+	h := newPageHandlers(t, env, "pt")
+
+	// Clear the seeded entry so the week has nothing.
+	today := resolveDay(httptest.NewRequest(http.MethodGet, "/", nil))
+	entries, err := env.store.ListEntries(env.userID, today)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range entries {
+		if err := env.store.DeleteEntry(env.userID, e.ID); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	req := signedIn(t, env, http.MethodGet, "/progresso")
+	rr := httptest.NewRecorder()
+	h.progress.ServeHTTP(rr, req)
+
+	body := rr.Body.String()
+	if strings.Contains(body, "Pico da semana: (") {
+		t.Error("empty week still prints an empty peak label")
+	}
+	if !strings.Contains(body, "Nenhuma refeição registrada nesta semana") {
+		t.Error("empty week has no explanatory copy")
+	}
 }

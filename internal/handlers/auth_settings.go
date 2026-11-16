@@ -16,6 +16,9 @@ func (h *AuthHandler) Settings(w http.ResponseWriter, r *http.Request) {
 	}
 	h.renderAuth(w, r, "settings", map[string]any{
 		"Title": h.t(r, "settings.title"),
+		// The template reads `.Errors` on every render; an untyped nil makes
+		// `index` fail with "index of untyped nil" (#43 pattern).
+		"Errors": validate.FieldErrors{},
 	}, 0)
 }
 
