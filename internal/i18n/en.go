@@ -88,6 +88,7 @@ var enMessages = map[string]string{
 	"meal.almoco":        "Lunch",
 	"meal.lanche":        "Afternoon Snack",
 	"meal.jantar":        "Dinner",
+	"meal.ceia":          "Supper",
 
 	"macro.carb":    "Carbs",
 	"macro.protein": "Protein",
@@ -215,7 +216,7 @@ var enMessages = map[string]string{
 	"home.feature_goal_title":       "A computed goal, not a guess",
 	"home.feature_goal_body":        "Mifflin-St Jeor with an activity factor. The goal never drops below the safe 1,200 kcal floor.",
 	"home.feature_diary_title":      "Diary by meal",
-	"home.feature_diary_body":       "Breakfast, lunch, snack and dinner with gram portions, per-item macros and hydration.",
+	"home.feature_diary_body":       "Breakfast, lunch, snack, dinner and supper with gram portions, per-item macros and hydration.",
 	"home.feature_mcp_title":        "Log by talking",
 	"home.feature_mcp_body":         "An API token unlocks the MCP server: log meals and read your diary through your agent.",
 	"diario.status.not_started":     "Day not started",

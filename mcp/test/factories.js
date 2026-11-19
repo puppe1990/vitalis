@@ -91,6 +91,7 @@ export function diary(overrides = {}) {
       { meal: "almoco", entries, count: entries.length, kcal: consumed },
       { meal: "lanche", entries: [], count: 0, kcal: 0 },
       { meal: "jantar", entries: [], count: 0, kcal: 0 },
+      { meal: "ceia", entries: [], count: 0, kcal: 0 },
     ],
   };
 }

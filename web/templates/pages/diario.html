@@ -137,7 +137,7 @@
     </form>
   </section>
 
-  {{/* Meals: four cards in chronological order, always present. */}}
+  {{/* Meals: one card per slot in chronological order, always present. */}}
   <section class="flex flex-col gap-space-md">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-space-xs">
@@ -152,8 +152,8 @@
     <article class="bg-surface-container-lowest rounded-2xl vitalis-card overflow-hidden">
       <header class="flex items-center justify-between gap-space-sm px-4 py-3">
         <div class="flex items-center gap-space-sm min-w-0">
-          <span class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 {{ if eq .Meal "cafe_da_manha" }}bg-carb-soft text-carb{{ else if eq .Meal "almoco" }}bg-primary-fixed text-primary{{ else if eq .Meal "lanche" }}bg-secondary-container/60 text-secondary{{ else }}bg-surface-container text-on-surface-variant{{ end }}">
-            {{ if eq .Icon "sunrise" }}{{ template "icon_sunrise" $ }}{{ else if eq .Icon "sun" }}{{ template "icon_sun" $ }}{{ else if eq .Icon "coffee" }}{{ template "icon_coffee" $ }}{{ else }}{{ template "icon_moon" $ }}{{ end }}
+          <span class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 {{ if eq .Meal "cafe_da_manha" }}bg-carb-soft text-carb{{ else if eq .Meal "almoco" }}bg-primary-fixed text-primary{{ else if eq .Meal "lanche" }}bg-secondary-container/60 text-secondary{{ else if eq .Meal "ceia" }}bg-tertiary-fixed text-on-tertiary-fixed{{ else }}bg-surface-container text-on-surface-variant{{ end }}">
+            {{ if eq .Icon "sunrise" }}{{ template "icon_sunrise" $ }}{{ else if eq .Icon "sun" }}{{ template "icon_sun" $ }}{{ else if eq .Icon "coffee" }}{{ template "icon_coffee" $ }}{{ else if eq .Icon "star" }}{{ template "icon_star" $ }}{{ else }}{{ template "icon_moon" $ }}{{ end }}
           </span>
           <div class="flex flex-col min-w-0">
             <h4 class="text-headline-sm font-bold text-on-surface truncate">{{ .Label }}</h4>

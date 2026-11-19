@@ -88,6 +88,7 @@ var ptMessages = map[string]string{
 	"meal.almoco":        "Almoço",
 	"meal.lanche":        "Lanche da Tarde",
 	"meal.jantar":        "Jantar",
+	"meal.ceia":          "Ceia",
 
 	"macro.carb":    "Carboidratos",
 	"macro.protein": "Proteínas",
@@ -215,7 +216,7 @@ var ptMessages = map[string]string{
 	"home.feature_goal_title":       "Meta calculada, não chutada",
 	"home.feature_goal_body":        "Mifflin-St Jeor com fator de atividade. A meta nunca cai abaixo do piso seguro de 1.200 kcal.",
 	"home.feature_diary_title":      "Diário por refeição",
-	"home.feature_diary_body":       "Café, almoço, lanche e jantar com porções em gramas, macros por item e hidratação.",
+	"home.feature_diary_body":       "Café, almoço, lanche, jantar e ceia com porções em gramas, macros por item e hidratação.",
 	"home.feature_mcp_title":        "Registre conversando",
 	"home.feature_mcp_body":         "Um token de API libera o servidor MCP: registre refeições e leia o diário pelo seu agente.",
 	"diario.status.not_started":     "Dia não iniciado",

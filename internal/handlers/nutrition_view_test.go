@@ -35,10 +35,10 @@ func TestBuildDayView_sumsEntriesIntoBalance(t *testing.T) {
 	}
 }
 
-func TestBuildDayView_alwaysReturnsFourMealCards(t *testing.T) {
+func TestBuildDayView_alwaysReturnsOneCardPerMeal(t *testing.T) {
 	got := buildDayView(models.Goal{TargetKcal: 2000}, nil, models.DayLog{}, testdata.Day(2026, 11, 16))
-	if len(got.Meals) != 4 {
-		t.Fatalf("Meals = %d, want 4", len(got.Meals))
+	if len(got.Meals) != len(nutrition.MealOrder()) {
+		t.Fatalf("Meals = %d, want %d", len(got.Meals), len(nutrition.MealOrder()))
 	}
 	for i, m := range got.Meals {
 		if m.Meal != nutrition.MealOrder()[i] {
@@ -46,6 +46,23 @@ func TestBuildDayView_alwaysReturnsFourMealCards(t *testing.T) {
 		}
 		if m.HasItems {
 			t.Errorf("empty day marked %q as having items", m.Meal)
+		}
+	}
+}
+
+// Every slot needs its own icon: a fallback would draw a second moon for the
+// ceia and make the card indistinguishable from dinner.
+func TestMealIcon_coversEverySlot(t *testing.T) {
+	want := map[nutrition.Meal]string{
+		nutrition.MealBreakfast: "sunrise",
+		nutrition.MealLunch:     "sun",
+		nutrition.MealSnack:     "coffee",
+		nutrition.MealDinner:    "moon",
+		nutrition.MealSupper:    "star",
+	}
+	for _, m := range nutrition.MealOrder() {
+		if got := mealIcon(m); got != want[m] {
+			t.Errorf("mealIcon(%q) = %q, want %q", m, got, want[m])
 		}
 	}
 }

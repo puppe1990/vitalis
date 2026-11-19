@@ -88,8 +88,10 @@ func MealFor(f *gofakeit.Faker) nutrition.Meal {
 		return nutrition.MealLunch
 	case roll <= 75:
 		return nutrition.MealSnack
-	default:
+	case roll <= 92:
 		return nutrition.MealDinner
+	default:
+		return nutrition.MealSupper
 	}
 }
 

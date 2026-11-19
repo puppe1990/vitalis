@@ -232,7 +232,8 @@ func statusKey(status string, entryCount int, day time.Time, now time.Time) stri
 	return "diario.status." + nutrition.DisplayStatus(status, entryCount, day, now)
 }
 
-// mealIcon maps a slot to the icon key the template renders.
+// mealIcon maps a slot to the icon key the template renders. Each one is
+// distinct: a fallback would make two cards look like the same meal.
 func mealIcon(m nutrition.Meal) string {
 	switch m {
 	case nutrition.MealBreakfast:
@@ -241,6 +242,8 @@ func mealIcon(m nutrition.Meal) string {
 		return "sun"
 	case nutrition.MealSnack:
 		return "coffee"
+	case nutrition.MealSupper:
+		return "star"
 	default:
 		return "moon"
 	}

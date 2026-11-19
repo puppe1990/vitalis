@@ -25,13 +25,15 @@ const dateSchema = z
 
 const mealSchema = z
   .string()
-  .describe("Refeição: cafe_da_manha, almoco, lanche ou jantar (aceita 'café da manhã', 'almoço').")
+  .describe(
+    "Refeição: cafe_da_manha, almoco, lanche, jantar ou ceia (aceita 'café da manhã', 'almoço')."
+  )
   .transform((raw, ctx) => {
     const meal = normalizeMeal(raw);
     if (!meal) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `refeição desconhecida: ${raw}. Use cafe_da_manha, almoco, lanche ou jantar.`,
+        message: `refeição desconhecida: ${raw}. Use cafe_da_manha, almoco, lanche, jantar ou ceia.`,
       });
       return z.NEVER;
     }
