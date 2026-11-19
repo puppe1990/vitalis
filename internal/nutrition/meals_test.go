@@ -3,7 +3,7 @@ package nutrition
 import "testing"
 
 func TestMealOrder_isStableAndComplete(t *testing.T) {
-	want := []Meal{MealBreakfast, MealLunch, MealSnack, MealDinner}
+	want := []Meal{MealBreakfast, MealLunch, MealSnack, MealDinner, MealSupper}
 	got := MealOrder()
 	if len(got) != len(want) {
 		t.Fatalf("MealOrder() has %d meals, want %d", len(got), len(want))
@@ -30,6 +30,12 @@ func TestMeal_normalizeFallsBackToSnack(t *testing.T) {
 	}
 	if got := NormalizeMeal("Almoço"); got != MealLunch {
 		t.Errorf("NormalizeMeal(Almoço) = %q, want %q", got, MealLunch)
+	}
+	if got := NormalizeMeal("Ceia"); got != MealSupper {
+		t.Errorf("NormalizeMeal(Ceia) = %q, want %q", got, MealSupper)
+	}
+	if got := NormalizeMeal("supper"); got != MealSupper {
+		t.Errorf("NormalizeMeal(supper) = %q, want %q", got, MealSupper)
 	}
 }
 

@@ -40,6 +40,7 @@ export const MEAL_LABELS = {
   almoco: "Almoço",
   lanche: "Lanche da Tarde",
   jantar: "Jantar",
+  ceia: "Ceia",
 };
 
 const MEAL_ALIASES = {
@@ -55,6 +56,8 @@ const MEAL_ALIASES = {
   snack: "lanche",
   jantar: "jantar",
   dinner: "jantar",
+  ceia: "ceia",
+  supper: "ceia",
 };
 
 /**

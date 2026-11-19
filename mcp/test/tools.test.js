@@ -562,6 +562,7 @@ describe("meal normalisation", () => {
       ["café da manhã", "cafe_da_manha"],
       ["almoço", "almoco"],
       ["jantar", "jantar"],
+      ["ceia", "ceia"],
       ["lanche", "lanche"],
     ]) {
       await call(tools, "log_meal", { food_id: 1, grams: 100, meal: input });

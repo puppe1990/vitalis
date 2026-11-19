@@ -14,6 +14,7 @@ const (
 	MealLunch     Meal = "almoco"
 	MealSnack     Meal = "lanche"
 	MealDinner    Meal = "jantar"
+	MealSupper    Meal = "ceia"
 )
 
 // mealAliases lets a form, an MCP client and an accented Portuguese string all
@@ -31,17 +32,19 @@ var mealAliases = map[string]Meal{
 	"snack":         MealSnack,
 	"jantar":        MealDinner,
 	"dinner":        MealDinner,
+	"ceia":          MealSupper,
+	"supper":        MealSupper,
 }
 
 // MealOrder is the diary's render order, matching the day's chronology.
 func MealOrder() []Meal {
-	return []Meal{MealBreakfast, MealLunch, MealSnack, MealDinner}
+	return []Meal{MealBreakfast, MealLunch, MealSnack, MealDinner, MealSupper}
 }
 
-// Valid reports whether m is one of the four known slots.
+// Valid reports whether m is one of the five known slots.
 func (m Meal) Valid() bool {
 	switch m {
-	case MealBreakfast, MealLunch, MealSnack, MealDinner:
+	case MealBreakfast, MealLunch, MealSnack, MealDinner, MealSupper:
 		return true
 	}
 	return false
